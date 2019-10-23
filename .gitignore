@@ -1,0 +1,26 @@
+# ignore these
+*.pyc
+*.log
+*.png
+*.model
+LocalData/F15/C02_tumorBoost/*
+LocalData/F15/C00_autofluo/*
+Metastases/F15/C02_tumorBoost/ROI_50/*
+Metastases/F15/C02_tumorBoost/ROI_70/*
+Metastases/F15/C02_tumorBoost/ROI_100/*
+met_classifier/met_images/FP/*
+met_classifier/met_images/TP/*
+
+# do not ignore these
+!LocalData/F15/C02_tumorBoost/patchvolume_402.nii
+!LocalData/F15/C02_tumorBoost/patchvolume_403.nii
+!LocalData/F15/C02_tumorBoost/patchvolume_412.nii
+!LocalData/F15/C02_tumorBoost/patchvolume_501.nii
+!LocalData/F15/C02_tumorBoost/patchvolume_459.nii
+!LocalData/F15/C02_tumorBoost/patchvolume_515.nii
+!LocalData/F15/C00_autofluo/patchvolume_402.nii
+!LocalData/F15/C00_autofluo/patchvolume_403.nii
+!LocalData/F15/C00_autofluo/patchvolume_412.nii
+!LocalData/F15/C00_autofluo/patchvolume_501.nii
+!LocalData/F15/C00_autofluo/patchvolume_459.nii
+!LocalData/F15/C00_autofluo/patchvolume_515.nii

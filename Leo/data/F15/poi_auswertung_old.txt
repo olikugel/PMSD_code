@@ -1,0 +1,4 @@
+
+Number of true positives: 8
+Number of false positives with closeby metastases: 38
+Number of false positives: 661
