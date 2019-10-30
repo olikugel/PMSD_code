@@ -1,14 +1,16 @@
-BASEPATH = '/home/olikugel/PMSD_code'
+CODEPATH = '/home/oschoppe/Documents/OKugel/PMSD_code'
+DATAPATH = '/home/oschoppe/Documents/OKugel/PMSD_data'
+HEAVY_DATAPATH = '/mnt/12TB/oschoppe'
+
 import sys
-sys.path.insert(0, BASEPATH + '/Leo/code/helperfunctions')
-sys.path.insert(0, BASEPATH + '/Leo/code/IDP_code')
+sys.path.insert(0, CODEPATH + '/helperfunctions')
+sys.path.insert(0, CODEPATH + '/IDP_code')
 import filehandling
 import dataconversions
 import cropping
 
 #%% Parameters
 
-MOUSEPATH = BASEPATH + '/mice_metadata' # path to 12TB HDD with all the scans
 ROI_width = 50
 mice = ['H2030IC10dn573','IC2dn2','IC6dn1','IC6dn2', 'IC14dn1', 'MCF7IC21dn528']
 channels = ['C00','C01','C02']
@@ -33,7 +35,7 @@ def write_ROI_to_Nifti(ROI, metastasis, mouse, channel):
     patch_ID = met['patch_id']
     met_ID = met['id']
     # Write ROI to Nifti-file whose filename includes patch_ID and met_ID
-    filepath = BASEPATH + '/Potential_TP_Metastases/' + mouse + '/' + channel + '/ROI_' + str(ROI_width) + '/' + 'NIFTI/' 
+    filepath = DATAPATH + '/Potential_TP_Metastases/' + mouse + '/' + channel + '/ROI_' + str(ROI_width) + '/' + 'NIFTI/' 
     patch_ID_padded = filehandling.pad_ID(patch_ID)
     met_ID_padded = filehandling.pad_ID(met_ID)
     filename = 'patch' + patch_ID_padded + '_met' + met_ID_padded + '.nii'
@@ -65,7 +67,7 @@ def write_ROI_to_PNGs(ROI, title, classification):
  
  
 for mouse in mice:
-    prediction = filehandling.pload(MOUSEPATH + '/' + mouse + '/reviewed_prediction.pickledump')
+    prediction = filehandling.pload(DATAPATH + '/mice_metadata/' + mouse + '/reviewed_prediction.pickledump')
     candidates = prediction['metastases']
     potential_TPs = dataconversions.filter_dicts(candidates,'evaluation-manually_confirmed',True)
     confirmed_FPs = dataconversions.filter_dicts(candidates,'evaluation-manually_confirmed',False)

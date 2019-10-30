@@ -1,6 +1,8 @@
-BASEPATH_remote = '/home/oschoppe/Documents/Synced/_Promotion/Projects/Leo'
+CODEPATH = '/home/oschoppe/Documents/OKugel/PMSD_code'
+DATAPATH = '/home/oschoppe/Documents/OKugel/PMSD_data'
+HEAVY_DATAPATH = '/mnt/12TB/oschoppe'
 import sys
-sys.path.insert(0, BASEPATH_remote + '/code/helperfunctions')
+sys.path.insert(0, CODEPATH + '/helperfunctions')
 import filehandling
 import numpy as np
 from operator import add
@@ -20,7 +22,7 @@ overlap = 50
 def crop_ROI(patch_ID, met_location, met_absolute_location, ROI_width, mouse, channel):
 
     global whole_scan_metadata
-    whole_scan_metadata = filehandling.pload(BASEPATH_remote + '/data/' + mouse + '/region.pickledump')
+    whole_scan_metadata = filehandling.pload(DATAPATH + '/mice_metadata/' + mouse + '/region.pickledump')
     
     patch = load_patch(patch_ID, mouse, channel)
     if patch is None: return (None, 'no file')
@@ -226,9 +228,8 @@ def determine_neighbour_types(yxz, patch_width):
 
 def load_patch(patch_ID, mouse, channel):
     
-    DATAPATH_remote = '/mnt/12TB/oschoppe' 
     filename = 'patchvolume_' + str(patch_ID) + '.nii'
-    path_to_patchdata = DATAPATH_remote + '/' + mouse + '/patchvolumes/' + channel + '/' + filename
+    path_to_patchdata = HEAVY_DATAPATH + '/' + mouse + '/patchvolumes/' + channel + '/' + filename
 
     try:
         patch = filehandling.readNifti(path_to_patchdata)
