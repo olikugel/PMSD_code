@@ -5,9 +5,11 @@ HEAVY_DATAPATH = '/mnt/12TB/oschoppe'
 import sys
 sys.path.insert(0, CODEPATH + '/helperfunctions')
 sys.path.insert(0, CODEPATH + '/IDP_code')
+import numpy as np
 import filehandling
 import dataconversions
 import cropping
+import matplotlib.pyplot as plt
 
 #%% Parameters
 
@@ -30,38 +32,47 @@ def crop_ROI(metastasis, mouse, channel):
     return ROI
 
 
+
 def write_ROI_to_Nifti(ROI, metastasis, mouse, channel):
+    
     met = metastasis
     patch_ID = met['patch_id']
     met_ID = met['id']
+    
     # Write ROI to Nifti-file whose filename includes patch_ID and met_ID
     filepath = DATAPATH + '/Potential_TP_Metastases/' + mouse + '/' + channel + '/ROI_' + str(ROI_width) + '/' + 'NIFTI/' 
     patch_ID_padded = filehandling.pad_ID(patch_ID)
     met_ID_padded = filehandling.pad_ID(met_ID)
-    filename = 'patch' + patch_ID_padded + '_met' + met_ID_padded + '.nii'
+    filename_prefix = 'patch' + patch_ID_padded + '_met' + met_ID_padded
+    filename = filename_prefix + '.nii'
     fileToWriteTo = filepath + filename
     filehandling.writeNifti(fileToWriteTo, ROI)
-  
-'''    
-def write_ROI_to_PNGs(ROI, title, classification):
+    return filename_prefix
+   
     
-    IMAGE_DIR = DATAPATH + 'ROI_images/' + classification + '/'
+
+def write_ROI_to_PNGs(ROI, filename_prefix):
     
+    filepath = DATAPATH + '/Potential_TP_Metastases/' + mouse + '/' + channel + '/ROI_' + str(ROI_width) + '/' + 'PNG/'
+
     MIP_y = np.max(ROI, 0) # maximum intensity projection along y
     axis = 'y'
-    filepath = IMAGE_DIR + title + '_' + axis + '.png'
-    plt.imsave(filepath, MIP_y, format='png')
+    filename = filename_prefix + '_' + axis + '.png'
+    fileToWriteTo = filepath + filename
+    plt.imsave(fileToWriteTo, MIP_y, format='png')
     
     MIP_x = np.max(ROI, 1) # maximum intensity projection along x
     axis = 'x'
-    filepath = IMAGE_DIR + title + '_' + axis + '.png'
-    plt.imsave(filepath, MIP_x, format='png')
+    filename = filename_prefix + '_' + axis + '.png'
+    fileToWriteTo = filepath + filename
+    plt.imsave(fileToWriteTo, MIP_x, format='png')
     
     MIP_z = np.max(ROI, 2) # maximum intensity projection along z
     axis = 'z'
-    filepath = IMAGE_DIR + title + '_' + axis + '.png'
-    plt.imsave(filepath, MIP_z, format='png')
-'''    
+    filename = filename_prefix + '_' + axis + '.png'
+    fileToWriteTo = filepath + filename
+    plt.imsave(fileToWriteTo, MIP_z, format='png')
+   
     
  #%% Main   
  
@@ -74,6 +85,11 @@ for mouse in mice:
 
     for potential_TP_met in potential_TPs:
         for channel in channels:
+            print('\n\n')
+            print('### Mouse ', mouse, ' ###')
+            print('### Channel ', channel, ' ###')
             ROI = crop_ROI(potential_TP_met, mouse, channel)
-            write_ROI_to_Nifti(ROI, potential_TP_met, mouse, channel)
+            if ROI is not None:
+                filename_prefix = write_ROI_to_Nifti(ROI, potential_TP_met, mouse, channel)
+                write_ROI_to_PNGs(ROI, filename_prefix)
             

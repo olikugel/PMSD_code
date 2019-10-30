@@ -62,7 +62,7 @@ def crop_ROI(patch_ID, met_location, met_absolute_location, ROI_width, mouse, ch
                'z'       : z,
                'z_lower' : z_lower,
                'z_upper' : z_upper}
-        ROI = glue_patches_for_ROI(patch, patch_ID, yxz, ROI_width, patch_width, met_absolute_location, channel)    
+        ROI = glue_patches_for_ROI(patch, patch_ID, yxz, ROI_width, patch_width, met_absolute_location, mouse, channel)    
         
     else:
         print('>> Metastasis lies within inner zone')
@@ -87,7 +87,7 @@ def crop_ROI(patch_ID, met_location, met_absolute_location, ROI_width, mouse, ch
     
 #%%  
     
-def glue_patches_for_ROI(patch, patch_ID, yxz, ROI_width, patch_width, met_absolute_location, channel):
+def glue_patches_for_ROI(patch, patch_ID, yxz, ROI_width, patch_width, met_absolute_location, mouse, channel):
 
     patchstep_of_original_patch = get_patchstep(patch_ID)
     print('\nPatch ' + str(patch_ID) + ' has patchstep-location ' + str(patchstep_of_original_patch))
@@ -110,16 +110,16 @@ def glue_patches_for_ROI(patch, patch_ID, yxz, ROI_width, patch_width, met_absol
         neighbour_typelabel = all_typelabels[neighbour_type]
         glue_neighbour = get_glue_neighbour(patch_ID, patchstep_of_original_patch, neighbour_type)
         # print_glue_neighbour(glue_neighbour)
-        ROI = glue_two_patches(patch, patch_ID, glue_neighbour, neighbour_typelabel, yxz, ROI_width, patch_width, channel)
+        ROI = glue_two_patches(patch, patch_ID, glue_neighbour, neighbour_typelabel, yxz, ROI_width, patch_width, mouse, channel)
 
     else: # i.e. if len(neighbour_types) > 1:
         number_of_cubes_to_glue = 8
-        eight_patch_cube, ulf_patchID = naive_cropping.build_8patch_cube(patch, patch_ID, patch_width, channel)
+        eight_patch_cube, ulf_patchID = naive_cropping.build_8patch_cube(patch, patch_ID, patch_width, mouse, channel)
         ROI = naive_cropping.crop_multipatchcube(eight_patch_cube, number_of_cubes_to_glue, ulf_patchID, ROI_width, met_absolute_location)
     
     if ROI is None or ROI.shape != (ROI_width, ROI_width, ROI_width):    
         number_of_cubes_to_glue = 27
-        twentyseven_cube, ulf_patchID = naive_cropping.build_27patch_cube(patch, patch_ID, patch_width, channel)
+        twentyseven_cube, ulf_patchID = naive_cropping.build_27patch_cube(patch, patch_ID, patch_width, mouse, channel)
         ROI = naive_cropping.crop_multipatchcube(twentyseven_cube, number_of_cubes_to_glue, ulf_patchID, ROI_width, met_absolute_location)
 
     return ROI
@@ -128,11 +128,11 @@ def glue_patches_for_ROI(patch, patch_ID, yxz, ROI_width, patch_width, met_absol
 
  #%%  
     
-def glue_two_patches(patch, patch_ID, glue_neighbour, neighbour_typelabel, yxz, ROI_width, patch_width, channel):
+def glue_two_patches(patch, patch_ID, glue_neighbour, neighbour_typelabel, yxz, ROI_width, patch_width, mouse, channel):
 
     try: 
         partial_original_patch = get_partial_original_patch(patch, neighbour_typelabel, yxz, ROI_width, patch_width)
-        partial_neighbour_patch = get_partial_neighbour_patch(glue_neighbour['patch_ID'], neighbour_typelabel, yxz, ROI_width, patch_width, channel)
+        partial_neighbour_patch = get_partial_neighbour_patch(glue_neighbour['patch_ID'], neighbour_typelabel, yxz, ROI_width, patch_width, mouse, channel)
     
         partial_original_shape = partial_original_patch.shape
         partial_neighbour_shape = partial_neighbour_patch.shape
@@ -290,9 +290,9 @@ def get_partial_original_patch(patch, neighbour_typelabel, yxz, ROI_width, patch
 
 #%%
 
-def get_partial_neighbour_patch(patch_ID, neighbour_typelabel, yxz, ROI_width, patch_width, channel):
+def get_partial_neighbour_patch(patch_ID, neighbour_typelabel, yxz, ROI_width, patch_width, mouse, channel):
     
-    neighbour_patch = load_patch(patch_ID, channel)
+    neighbour_patch = load_patch(patch_ID, mouse, channel)
     if neighbour_patch is None: return None
     
     ROI_width_half = int(ROI_width / 2)

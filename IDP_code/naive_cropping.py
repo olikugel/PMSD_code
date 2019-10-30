@@ -37,7 +37,7 @@ overlap = 50
 
 #%%
 
-def build_27patch_cube(patch, patch_ID, patch_width, channel):
+def build_27patch_cube(patch, patch_ID, patch_width, mouse, channel):
 
     print('Building 27-patch-cube')
     
@@ -52,7 +52,7 @@ def build_27patch_cube(patch, patch_ID, patch_width, channel):
             neighbour = cropping.get_glue_neighbour(patch_ID, patchstep_original, neighbour_type)
             neighbour_patchID = neighbour['patch_ID']
             if neighbour_type == 0: up_left_front_patchID = neighbour_patchID
-            neighbour_patch = cropping.load_patch(neighbour_patchID, channel)
+            neighbour_patch = cropping.load_patch(neighbour_patchID, mouse, channel)
             neighbour_patch = neighbour_patch[0:crop_width, 0:crop_width, 0:crop_width]
             neighbour_patches.append(neighbour_patch) 
     except:
@@ -93,7 +93,7 @@ def build_27patch_cube(patch, patch_ID, patch_width, channel):
 
 #%%
 
-def build_8patch_cube(patch, patch_ID, patch_width, channel):
+def build_8patch_cube(patch, patch_ID, patch_width, mouse, channel):
     
     print('Building 8-patch-cube')
     '''
@@ -113,31 +113,31 @@ def build_8patch_cube(patch, patch_ID, patch_width, channel):
         
         up_neighbour = cropping.get_glue_neighbour(patch_ID, patchstep_original, 4)
         up_patchID   = up_neighbour['patch_ID']
-        up_patch     = cropping.load_patch(up_patchID, channel)
+        up_patch     = cropping.load_patch(up_patchID, mouse, channel)
         
         front_neighbour = cropping.get_glue_neighbour(patch_ID, patchstep_original, 12)
         front_patchID   = front_neighbour['patch_ID']
-        front_patch     = cropping.load_patch(front_patchID, channel)
+        front_patch     = cropping.load_patch(front_patchID, mouse, channel)
         
         up_front_neighbour = cropping.get_glue_neighbour(patch_ID, patchstep_original, 3)
         up_front_patchID   = up_front_neighbour['patch_ID']
-        up_front_patch     = cropping.load_patch(up_front_patchID, channel)
+        up_front_patch     = cropping.load_patch(up_front_patchID, mouse, channel)
         
         left_neighbour = cropping.get_glue_neighbour(patch_ID, patchstep_original, 10)
         left_patchID   = left_neighbour['patch_ID']
-        left_patch     = cropping.load_patch(left_patchID, channel)
+        left_patch     = cropping.load_patch(left_patchID, mouse, channel)
         
         up_left_neighbour = cropping.get_glue_neighbour(patch_ID, patchstep_original, 1)
         up_left_patchID   = up_left_neighbour['patch_ID']
-        up_left_patch     = cropping.load_patch(up_left_patchID, channel)
+        up_left_patch     = cropping.load_patch(up_left_patchID, mouse, channel)
         
         left_front_neighbour = cropping.get_glue_neighbour(patch_ID, patchstep_original, 9)
         left_front_patchID   = left_front_neighbour['patch_ID']
-        left_front_patch     = cropping.load_patch(left_front_patchID, channel)
+        left_front_patch     = cropping.load_patch(left_front_patchID, mouse, channel)
         
         up_left_front_neighbour = cropping.get_glue_neighbour(patch_ID, patchstep_original, 0)
         up_left_front_patchID   = up_left_front_neighbour['patch_ID']
-        up_left_front_patch     = cropping.load_patch(up_left_front_patchID, channel)
+        up_left_front_patch     = cropping.load_patch(up_left_front_patchID, mouse, channel)
     
         crop_width = patch_width - overlap
             
