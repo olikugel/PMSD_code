@@ -20,9 +20,11 @@ channels = ['C00','C01','C02']
 #%%
 
 def crop_ROI(metastasis, mouse, channel):
+    
     met = metastasis
     patch_ID = met['patch_id']
     met_ID = met['id']
+    
     met_location = met['offset'] + met['CoM']
     met_absolute_location = met['location']['center']
     print('---------------------------------------')
@@ -39,8 +41,7 @@ def write_ROI_to_Nifti(ROI, metastasis, mouse, channel):
     patch_ID = met['patch_id']
     met_ID = met['id']
     
-    # Write ROI to Nifti-file whose filename includes patch_ID and met_ID
-    filepath = DATAPATH + '/Potential_TP_Metastases/' + mouse + '/' + channel + '/ROI_' + str(ROI_width) + '/' + 'NIFTI/' 
+    filepath = DATAPATH + '/Potential_TP_Metastases/' + mouse + '/' + channel + '/ROI_' + str(ROI_width) + '/NIFTI/' 
     patch_ID_padded = filehandling.pad_ID(patch_ID)
     met_ID_padded = filehandling.pad_ID(met_ID)
     filename_prefix = 'patch' + patch_ID_padded + '_met' + met_ID_padded
@@ -53,7 +54,7 @@ def write_ROI_to_Nifti(ROI, metastasis, mouse, channel):
 
 def write_ROI_to_PNGs(ROI, filename_prefix):
     
-    filepath = DATAPATH + '/Potential_TP_Metastases/' + mouse + '/' + channel + '/ROI_' + str(ROI_width) + '/' + 'PNG/'
+    filepath = DATAPATH + '/Potential_TP_Metastases/' + mouse + '/' + channel + '/ROI_' + str(ROI_width) + '/PNG/'
 
     MIP_y = np.max(ROI, 0) # maximum intensity projection along y
     axis = 'y'
