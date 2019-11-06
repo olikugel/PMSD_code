@@ -24,3 +24,4 @@ met_classifier/met_images/TP/*
 !LocalData/F15/C00_autofluo/patchvolume_501.nii
 !LocalData/F15/C00_autofluo/patchvolume_459.nii
 !LocalData/F15/C00_autofluo/patchvolume_515.nii
+output.log
