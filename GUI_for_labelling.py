@@ -46,9 +46,8 @@ candidate_IDs = []
 for TP_candidate in TP_candidates:
     candidate_IDs.append(TP_candidate['global_id'])
     
-print('Candidate IDs: ', candidate_IDs)
-
 #%% functions
+    
     
 def get_filename(candidate_ID, axis):
     
@@ -64,13 +63,11 @@ def get_filename(candidate_ID, axis):
     return filename
     
 
+
 @ignore_warnings
 def update_plot():
     global main_fig
-
     plt.figure(num=main_fig.number)
-
-    # Load all 3x3 projection-images for given candidate ID
     
     # channel C00
     filepath = DATAPATH + '/Potential_TP_Metastases/' + mouse + '/C00/ROI_50/PNG/'
@@ -89,49 +86,61 @@ def update_plot():
     image_C02_y = mpimg.imread(filepath + get_filename(candidate_ID, 'y'))
     image_C02_x = mpimg.imread(filepath + get_filename(candidate_ID, 'x'))
     image_C02_z = mpimg.imread(filepath + get_filename(candidate_ID, 'z'))
-    
-    # Update subplots
-    
-    # channel C00
+       
+    # channel C00 -- z
     ax = plt.subplot(3,2,1)
-    ax.cla()
-    plt.imshow(image_C00_z) # z
+    plt.subplots_adjust(top=0.76)
+    ax.set_title('Projection along z-axis', fontsize='x-large', y=1.2)
+    ax.set_ylabel('C00 channel', rotation=0, fontsize='x-large')
+    ax.yaxis.set_label_coords(-0.5, 0.5)
+    plt.imshow(image_C00_z) 
+    
+    # channel C00 -- x
     ax = plt.subplot(3,2,2)
-    ax.cla()
-    plt.imshow(image_C00_x) # x
+    ax.set_title('Projection along x-axis', fontsize='x-large', y=1.2)
+    ax.set_ylabel('C00 channel', rotation=0, fontsize='x-large')
+    ax.yaxis.set_label_coords(-0.5, 0.5)
+    plt.imshow(image_C00_x)
     
-    # channel C01
+    # channel C01 -- z
     ax = plt.subplot(3,2,3)
-    ax.cla()
-    plt.imshow(image_C01_z) # z
-    ax = plt.subplot(3,2,4)
-    ax.cla()
-    plt.imshow(image_C01_x) # x
+    ax.set_ylabel('C01 channel', rotation=0, fontsize='x-large')
+    ax.yaxis.set_label_coords(-0.5, 0.5)
+    plt.imshow(image_C01_z) 
     
-    # channel C02
+    # channel C01 -- x
+    ax = plt.subplot(3,2,4)
+    ax.set_ylabel('C01 channel', rotation=0, fontsize='x-large')
+    ax.yaxis.set_label_coords(-0.5, 0.5)
+    plt.imshow(image_C01_x)
+    
+    # channel C02 -- z
     ax = plt.subplot(3,2,5)
-    ax.cla()
-    plt.imshow(image_C02_z) # z
+    ax.set_ylabel('C02 channel', rotation=0, fontsize='x-large')
+    ax.yaxis.set_label_coords(-0.5, 0.5)
+    plt.imshow(image_C02_z)
+    
+    # channel C02 -- x
     ax = plt.subplot(3,2,6)
-    ax.cla()
-    plt.imshow(image_C02_x) # x
+    ax.set_ylabel('C02 channel', rotation=0, fontsize='x-large')
+    ax.yaxis.set_label_coords(-0.5, 0.5)
+    plt.imshow(image_C02_x)
     
     # Update rest
-    plt.suptitle('Mouse ' + mouse + '\nCandidate ' + str(candidate_ID) + ' of ' + str(number_of_candidates))
+    current_mouse_title = 'Mouse ' + mouse + '\n\n' + 'Candidate ' + str(candidate_ID) + ' of ' + str(number_of_candidates)
+    plt.suptitle(current_mouse_title,  fontsize='x-large', y=0.96)
     plt.draw()
-    plt.subplots_adjust(top   = 0.85)
-    plt.subplots_adjust(right = 0.98)
-    plt.subplots_adjust(left  = 0)
     
-
-def next_candidate(not_needed=False):
+    
+    
+def next_candidate():
     # define optional argument so that function can be called from button
     global candidate_IDs, candidate_ID, candidate_dict
     try:
         candidate_ID = candidate_IDs.pop(0)
         print()
         print('Current candidate: ', candidate_ID)
-        print(candidate_IDs)
+        print('Remaining candidates: ', candidate_IDs)
         # load candidate_dict
         # candidate_dict = {}
         # candidate_dict['evaluation'] = {}
@@ -142,15 +151,15 @@ def next_candidate(not_needed=False):
         # traceback.print_exc()
         # print("\n\nNo more candidates to review.")
 
-
-def mark_as_FP(event):
+# FP = false positive
+def mark_as_FP(event): 
     global candidate_dict
     # candidate_dict['evaluation']['XYAZ'] = False
     save_candidate()
     print("Candidate was marked as FP")
     next_candidate()
 
-
+# TP = true positive
 def mark_as_TP(event):
     global candidate_dict
     # candidate_dict['evaluation']['XYAZ'] = True
@@ -158,8 +167,8 @@ def mark_as_TP(event):
     print("Candidate was marked as TP")
     next_candidate()
 
-
-def mark_as_unclear(event):
+# UC = unclear
+def mark_as_UC(event):
     global candidate_dict
     # candidate_dict['evaluation']['XYAZ'] = None
     save_candidate()
@@ -185,18 +194,35 @@ plt.figure(main_fig.number)
 
 plt.get_current_fig_manager().window.showMaximized()
 screensize = main_fig.get_size_inches()*main_fig.dpi
+buttontext_size = 15
 
-# window: Save
-main_wp_s = [0.03, 0.9, 0.10, 0.08]
-main_wa_s = plt.axes(main_wp_s)
-main_w_s = Button(main_wa_s, 'Save changes')
-main_w_s.on_clicked(save_to_file) 
+# button: mark as TP
+main_wp_TP = [0.03, 0.9, 0.10, 0.08]
+main_wa_TP = plt.axes(main_wp_TP)
+main_w_TP = Button(main_wa_TP, 'This is a\nreal metastasis')
+main_w_TP.label.set_fontsize(buttontext_size)
+main_w_TP.on_clicked(mark_as_TP) 
 
-# window: mark as TP
-main_wp_t = [0.03+0.1, 0.9, 0.10, 0.08]
-main_wa_t = plt.axes(main_wp_t)
-main_w_t = Button(main_wa_t, 'Mark as TP')
-main_w_t.on_clicked(mark_as_TP) 
+# button: mark as FP
+main_wp_FP = [0.03+0.115, 0.9, 0.10, 0.08]
+main_wa_FP = plt.axes(main_wp_FP)
+main_w_FP = Button(main_wa_FP, 'This is NOT a\nreal metastasis')
+main_w_FP.label.set_fontsize(buttontext_size)
+main_w_FP.on_clicked(mark_as_FP) 
+
+# button: mark as unclear
+main_wp_UC = [0.03+0.23, 0.9, 0.10, 0.08]
+main_wa_UC = plt.axes(main_wp_UC)
+main_w_UC = Button(main_wa_UC, "I'm not sure\nwhat this is")
+main_w_UC.label.set_fontsize(buttontext_size)
+main_w_UC.on_clicked(mark_as_UC) 
+
+# button: save all
+main_wp_SA = [0.03+0.65, 0.9, 0.10, 0.08]
+main_wa_SA = plt.axes(main_wp_SA)
+main_w_SA = Button(main_wa_SA, 'Save all\ndecisions')
+main_w_SA.label.set_fontsize(buttontext_size)
+main_w_SA.on_clicked(save_to_file) 
 
 next_candidate()
 plt.show(block=True)
