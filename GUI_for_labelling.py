@@ -11,9 +11,11 @@ matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 import matplotlib.image as mpimg
+from matplotlib.patches import Rectangle
 
 import traceback
 import warnings
+import copy
 from functools import wraps
 def ignore_warnings(f):
     @wraps(f)
@@ -23,6 +25,7 @@ def ignore_warnings(f):
             response = f(*args, **kwargs)
         return response
     return inner
+
 
 #%% Main parameters 
 
@@ -37,14 +40,23 @@ mouse = mice[0]
 main_fig = plt.figure(num=101)
 main_ax_plt = main_fig.gca()
 
+region =  filehandling.pload(DATAPATH + '/mice_metadata/' + mouse + '/region.pickledump')
 prediction = filehandling.pload(DATAPATH + '/mice_metadata/' + mouse + '/reviewed_prediction.pickledump')
 metastases = prediction['metastases']
 TP_candidates = dataconversions.filter_dicts(metastases,'evaluation-manually_confirmed',True)
 number_of_candidates = len(TP_candidates)
+candidate_dict = {}
 
 candidate_IDs = []
 for TP_candidate in TP_candidates:
     candidate_IDs.append(TP_candidate['global_id'])
+   
+all_candidate_IDs = copy.deepcopy(candidate_IDs)
+print('All candidate IDs: ', all_candidate_IDs)
+
+# for debugging
+for x in range(230):
+    candidate_ID = candidate_IDs.pop(0)
     
 #%% functions
     
@@ -64,26 +76,36 @@ def get_filename(candidate_ID, axis):
     
 
 
+def check_if_file_exists(file):
+    try:
+        image = mpimg.imread(file)
+    except Exception as e:
+        print('Image files for this metastasis are missing')
+        next_candidate()
+
+
+
 @ignore_warnings
 def update_plot():
     global main_fig
     plt.figure(num=main_fig.number)
-    
+       
     # channel C00
     filepath = DATAPATH + '/Potential_TP_Metastases/' + mouse + '/C00/ROI_50/PNG/'
-    image_C00_y = mpimg.imread(filepath + get_filename(candidate_ID, 'y'))
+    check_if_file_exists(filepath + get_filename(candidate_ID, 'y'))
+    if len(candidate_IDs) == 0: return
     image_C00_x = mpimg.imread(filepath + get_filename(candidate_ID, 'x'))
     image_C00_z = mpimg.imread(filepath + get_filename(candidate_ID, 'z'))
 
     # channel C01
     filepath = DATAPATH + '/Potential_TP_Metastases/' + mouse + '/C01/ROI_50/PNG/'
-    image_C01_y = mpimg.imread(filepath + get_filename(candidate_ID, 'y'))
+    check_if_file_exists(filepath + get_filename(candidate_ID, 'y'))
     image_C01_x = mpimg.imread(filepath + get_filename(candidate_ID, 'x'))
     image_C01_z = mpimg.imread(filepath + get_filename(candidate_ID, 'z'))
     
     # channel C02
     filepath = DATAPATH + '/Potential_TP_Metastases/' + mouse + '/C02/ROI_50/PNG/'
-    image_C02_y = mpimg.imread(filepath + get_filename(candidate_ID, 'y'))
+    check_if_file_exists(filepath + get_filename(candidate_ID, 'y'))
     image_C02_x = mpimg.imread(filepath + get_filename(candidate_ID, 'x'))
     image_C02_z = mpimg.imread(filepath + get_filename(candidate_ID, 'z'))
        
@@ -127,62 +149,50 @@ def update_plot():
     plt.imshow(image_C02_x)
     
     # Update rest
-    current_mouse_title = 'Mouse ' + mouse + '\n\n' + 'Candidate ' + str(candidate_ID) + ' of ' + str(number_of_candidates)
-    plt.suptitle(current_mouse_title,  fontsize='x-large', y=0.96)
+    displayed_ID = all_candidate_IDs.index(candidate_ID) + 1
+    current_mouse_title = 'Mouse ' + mouse + '\n\n' + 'Candidate ' + str(displayed_ID) + ' of ' + str(number_of_candidates) + '\n\n(Actual candidate ID: ' + str(candidate_ID) + ')'
+    plt.suptitle(current_mouse_title,  fontsize='x-large', y=0.977)
     plt.draw()
     
     
     
 def next_candidate():
-    # define optional argument so that function can be called from button
     global candidate_IDs, candidate_ID, candidate_dict
-    try:
+    
+    if len(candidate_IDs) > 0: 
         candidate_ID = candidate_IDs.pop(0)
-        print()
-        print('Current candidate: ', candidate_ID)
-        print('Remaining candidates: ', candidate_IDs)
-        # load candidate_dict
-        # candidate_dict = {}
-        # candidate_dict['evaluation'] = {}
-        # candidate_dict['evaluation']['XYAZ'] = None
+        print('\nCurrent candidate: ', candidate_ID)
         update_plot()
-    except Exception as e:
-        print(e)
-        # traceback.print_exc()
-        # print("\n\nNo more candidates to review.")
+    else:
+        print('\nNo more candidates to review')
+        # save_to_file('something')
 
-# FP = false positive
+
+  
 def mark_as_FP(event): 
-    global candidate_dict
-    # candidate_dict['evaluation']['XYAZ'] = False
-    save_candidate()
-    print("Candidate was marked as FP")
+    if len(candidate_IDs) > 0: 
+        candidate_dict[candidate_ID] = 'FP'
+        print('Candidate was marked as FP (false positive)')
     next_candidate()
 
-# TP = true positive
+
 def mark_as_TP(event):
-    global candidate_dict
-    # candidate_dict['evaluation']['XYAZ'] = True
-    save_candidate()
-    print("Candidate was marked as TP")
+    if len(candidate_IDs) > 0: 
+        candidate_dict[candidate_ID] = 'TP'
+        print('Candidate was marked as TP (true positive)')
     next_candidate()
 
-# UC = unclear
+
 def mark_as_UC(event):
-    global candidate_dict
-    # candidate_dict['evaluation']['XYAZ'] = None
-    save_candidate()
-    print("Candidate was marked as unclear")
+    if len(candidate_IDs) > 0: 
+        candidate_dict[candidate_ID] = 'UC'
+        print('Candidate was marked as UC (unclear)')
     next_candidate()
 
-
-def save_candidate():
-    #filehandling.psave(BASEP + 'results/' + dataset + '/reviewed_prediction',prediction)
-    print('We noted the change somewhere in some variable')
 
 
 def save_to_file(event):
-    #filehandling.psave(BASEP + 'results/' + dataset + '/reviewed_prediction',prediction)
+    #filehandling.psave(BASEP + 'results/' + dataset + '/reviewed_via_GUI_prediction_annotatorname',prediction)
     print(event)
     print('Saved to file')
 
