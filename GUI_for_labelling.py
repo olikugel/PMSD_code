@@ -13,6 +13,7 @@ from matplotlib.widgets import Button
 import matplotlib.image as mpimg
 from matplotlib.patches import Rectangle
 
+import datetime
 import traceback
 import warnings
 import copy
@@ -27,9 +28,15 @@ def ignore_warnings(f):
     return inner
 
 
-#%% Main parameters 
+#%%
 
 NAME_OF_ANNOTATOR = 'Oliver Kugel'
+d = datetime.datetime.today()
+DATE_OF_TODAY = d.strftime('%d-%m-%Y')
+print()
+print("Annotator: ", NAME_OF_ANNOTATOR)
+print ("Today's date: ", DATE_OF_TODAY)
+print()
 
 mice = ['H2030IC10dn573','IC2dn2','IC6dn1','IC6dn2', 'IC14dn1', 'MCF7IC21dn528']
 mouse = mice[0]
@@ -40,7 +47,7 @@ mouse = mice[0]
 main_fig = plt.figure(num=101)
 main_ax_plt = main_fig.gca()
 
-region =  filehandling.pload(DATAPATH + '/mice_metadata/' + mouse + '/region.pickledump')
+region = filehandling.pload(DATAPATH + '/mice_metadata/' + mouse + '/region.pickledump')
 prediction = filehandling.pload(DATAPATH + '/mice_metadata/' + mouse + '/reviewed_prediction.pickledump')
 metastases = prediction['metastases']
 TP_candidates = dataconversions.filter_dicts(metastases,'evaluation-manually_confirmed',True)
@@ -67,7 +74,6 @@ def get_current_metastasis(candidate_ID):
 
   
 def get_filename(candidate_ID, axis):
-    
     current_metastasis = get_current_metastasis(candidate_ID)
     patch_ID = current_metastasis['patch_id']
     met_ID = current_metastasis['id']
@@ -80,11 +86,20 @@ def get_filename(candidate_ID, axis):
     
 
 
+def save_decision(decision):
+    current_metastasis = get_current_metastasis(candidate_ID)
+    current_metastasis['evaluation']['reviewed_via_GUI'] = decision
+    current_metastasis['evaluation']['annotator_via_GUI'] = NAME_OF_ANNOTATOR
+    current_metastasis['evaluation']['date_of_review_via_GUI'] = DATE_OF_TODAY
+
+
+
 def check_if_file_exists(file):
     try:
         image = mpimg.imread(file)
     except Exception as e:
         print('Image files for this metastasis are missing')
+        save_decision('could not load image files')
         next_candidate()
 
 
@@ -169,15 +184,13 @@ def next_candidate():
         update_plot()
     else:
         print('\nNo more candidates to review')
-        # save_to_file('something')
 
 
 
 def mark_as_TP(event):
     if len(candidate_IDs) > 0: 
         print('Candidate was marked as true positive')
-        current_metastasis = get_current_metastasis(candidate_ID)
-        current_metastasis['evaluation']['reviewed_via_GUI'] = 'true positive'
+        save_decision('true positive')
     next_candidate()
 
 
@@ -185,8 +198,7 @@ def mark_as_TP(event):
 def mark_as_FP(event): 
     if len(candidate_IDs) > 0: 
         print('Candidate was marked as false positive')
-        current_metastasis = get_current_metastasis(candidate_ID)
-        current_metastasis['evaluation']['reviewed_via_GUI'] = 'false positive'
+        save_decision('false positive')
     next_candidate()
 
 
@@ -194,17 +206,20 @@ def mark_as_FP(event):
 def mark_as_UC(event):
     if len(candidate_IDs) > 0: 
         print('Candidate was marked as unclear')
-        current_metastasis = get_current_metastasis(candidate_ID)
-        current_metastasis['evaluation']['reviewed_via_GUI'] = 'unclear'
+        save_decision('unclear')
     next_candidate()
 
 
 
 def save_to_file(event):
-    #filehandling.psave(BASEP + 'results/' + dataset + '/reviewed_via_GUI_prediction_annotatorname',prediction)
-    print(event)
-    print('Saved to file')
-
+    filename = 'reviewed_via_GUI_by_' + NAME_OF_ANNOTATOR.replace(' ', '_') + '_on_the_' + DATE_OF_TODAY + '.pickledump'
+    filepath_with_filename = DATAPATH + '/mice_metadata/' + mouse + '/' + filename
+    filehandling.psave(filepath_with_filename, TP_candidates)
+    print()
+    print('----------------------------------------------------')
+    print('All decisions saved to file ', filepath_with_filename)
+    print('----------------------------------------------------')
+    # DECISIONS = filehandling.pload(filepath_with_filename)
 
 #%% Launch GUI
 
