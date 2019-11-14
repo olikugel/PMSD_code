@@ -55,15 +55,20 @@ all_candidate_IDs = copy.deepcopy(candidate_IDs)
 print('All candidate IDs: ', all_candidate_IDs)
 
 # for debugging
-for x in range(230):
-    candidate_ID = candidate_IDs.pop(0)
+#for x in range(230):
+#    candidate_ID = candidate_IDs.pop(0)
     
 #%% functions
     
-    
+  
+def get_current_metastasis(candidate_ID):
+    current_metastasis = dataconversions.filter_dicts(TP_candidates,'global_id',candidate_ID)[0]
+    return current_metastasis
+
+  
 def get_filename(candidate_ID, axis):
     
-    current_metastasis = dataconversions.filter_dicts(TP_candidates,'global_id',candidate_ID)[0]
+    current_metastasis = get_current_metastasis(candidate_ID)
     patch_ID = current_metastasis['patch_id']
     met_ID = current_metastasis['id']
     patch_ID_padded = filehandling.pad_ID(patch_ID)
@@ -71,7 +76,6 @@ def get_filename(candidate_ID, axis):
     
     filename_prefix = 'patch' + patch_ID_padded + '_met' + met_ID_padded
     filename = filename_prefix + '_' + axis + '.png'
-    
     return filename
     
 
@@ -168,25 +172,30 @@ def next_candidate():
         # save_to_file('something')
 
 
-  
-def mark_as_FP(event): 
-    if len(candidate_IDs) > 0: 
-        candidate_dict[candidate_ID] = 'FP'
-        print('Candidate was marked as FP (false positive)')
-    next_candidate()
-
 
 def mark_as_TP(event):
     if len(candidate_IDs) > 0: 
-        candidate_dict[candidate_ID] = 'TP'
-        print('Candidate was marked as TP (true positive)')
+        print('Candidate was marked as true positive')
+        current_metastasis = get_current_metastasis(candidate_ID)
+        current_metastasis['evaluation']['reviewed_via_GUI'] = 'true positive'
     next_candidate()
+
+
+
+def mark_as_FP(event): 
+    if len(candidate_IDs) > 0: 
+        print('Candidate was marked as false positive')
+        current_metastasis = get_current_metastasis(candidate_ID)
+        current_metastasis['evaluation']['reviewed_via_GUI'] = 'false positive'
+    next_candidate()
+
 
 
 def mark_as_UC(event):
     if len(candidate_IDs) > 0: 
-        candidate_dict[candidate_ID] = 'UC'
-        print('Candidate was marked as UC (unclear)')
+        print('Candidate was marked as unclear')
+        current_metastasis = get_current_metastasis(candidate_ID)
+        current_metastasis['evaluation']['reviewed_via_GUI'] = 'unclear'
     next_candidate()
 
 
@@ -206,14 +215,14 @@ plt.get_current_fig_manager().window.showMaximized()
 screensize = main_fig.get_size_inches()*main_fig.dpi
 buttontext_size = 15
 
-# button: mark as TP
+# button: mark as true positive
 main_wp_TP = [0.03, 0.9, 0.10, 0.08]
 main_wa_TP = plt.axes(main_wp_TP)
 main_w_TP = Button(main_wa_TP, 'This is a\nreal metastasis')
 main_w_TP.label.set_fontsize(buttontext_size)
 main_w_TP.on_clicked(mark_as_TP) 
 
-# button: mark as FP
+# button: mark as false positive
 main_wp_FP = [0.03+0.115, 0.9, 0.10, 0.08]
 main_wa_FP = plt.axes(main_wp_FP)
 main_w_FP = Button(main_wa_FP, 'This is NOT a\nreal metastasis')
