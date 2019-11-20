@@ -47,7 +47,6 @@ mouse = mice[0]
 main_fig = plt.figure(num=101)
 main_ax_plt = main_fig.gca()
 
-region = filehandling.pload(DATAPATH + '/mice_metadata/' + mouse + '/region.pickledump')
 prediction = filehandling.pload(DATAPATH + '/mice_metadata/' + mouse + '/reviewed_prediction.pickledump')
 metastases = prediction['metastases']
 TP_candidates = dataconversions.filter_dicts(metastases,'evaluation-manually_confirmed',True)
@@ -61,18 +60,32 @@ for TP_candidate in TP_candidates:
 all_candidate_IDs = copy.deepcopy(candidate_IDs)
 print('All candidate IDs: ', all_candidate_IDs)
 
+region = filehandling.pload(DATAPATH + '/mice_metadata/' + mouse + '/region.pickledump')
+whole_mouse_thumbnails = region['thumbnails']['MaxProjections_Z']
+
 # for debugging
 #for x in range(230):
 #    candidate_ID = candidate_IDs.pop(0)
     
 #%% functions
+   
     
-  
 def get_current_metastasis(candidate_ID):
     current_metastasis = dataconversions.filter_dicts(TP_candidates,'global_id',candidate_ID)[0]
     return current_metastasis
 
-  
+
+def get_whole_mouse_thumbnail(candidate_ID):
+    current_metastasis = get_current_metastasis(candidate_ID)
+    patch_ID = current_metastasis['patch_id']
+    patches = region['patches']
+    patch = dataconversions.filter_dicts(patches, 'id', patch_ID)[0]
+    patchstep = patch['patchstep']
+    z_patchstep = patchstep[2]
+    whole_mouse_thumbnail = whole_mouse_thumbnails[:, :, z_patchstep]
+    return whole_mouse_thumbnail
+    
+
 def get_filename(candidate_ID, axis):
     current_metastasis = get_current_metastasis(candidate_ID)
     patch_ID = current_metastasis['patch_id']
@@ -171,7 +184,12 @@ def update_plot():
     displayed_ID = all_candidate_IDs.index(candidate_ID) + 1
     current_mouse_title = 'Mouse ' + mouse + '\n\n' + 'Candidate ' + str(displayed_ID) + ' of ' + str(number_of_candidates) + '\n\n(Actual candidate ID: ' + str(candidate_ID) + ')'
     plt.suptitle(current_mouse_title,  fontsize='x-large', y=0.977)
+    
+    whole_mouse_thumbnail = get_whole_mouse_thumbnail(candidate_ID)
+    plt.imshow(whole_mouse_thumbnail, vmin=0, vmax=3000)
+    
     plt.draw()
+    
     
     
     
@@ -219,7 +237,6 @@ def save_to_file(event):
     print('----------------------------------------------------')
     print('All decisions saved to file ', filepath_with_filename)
     print('----------------------------------------------------')
-    # DECISIONS = filehandling.pload(filepath_with_filename)
 
 #%% Launch GUI
 
@@ -261,3 +278,6 @@ main_w_SA.on_clicked(save_to_file)
 next_candidate()
 plt.show(block=True)
 
+
+
+# DECISIONS = filehandling.pload('/home/olikugel/PMSD_data/mice_metadata/H2030IC10dn573/reviewed_via_GUI_by_Oliver_Kugel_on_the_20-11-2019.pickledump')
