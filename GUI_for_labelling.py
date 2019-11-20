@@ -90,6 +90,17 @@ def get_patch_projection(candidate_ID):
     patch_ID = current_metastasis['patch_id']
 '''    
     
+def get_lower_left_corner(candidate_ID):
+    current_metastasis = get_current_metastasis(candidate_ID)
+    patch_ID = current_metastasis['patch_id']
+    patches = region['patches']
+    patch = dataconversions.filter_dicts(patches, 'id', patch_ID)[0]
+    patchstep = patch['patchstep']
+    lower_left_x = patchstep[1]*30      # DOUBLE CHECK THIS!!!
+    lower_left_y = (patchstep[0]+1)*30  # DOUBLE CHECK THIS!!!
+    lower_left_corner = (lower_left_x, lower_left_y) 
+    return lower_left_corner
+
 
 def get_filename(candidate_ID, axis):
     current_metastasis = get_current_metastasis(candidate_ID)
@@ -146,20 +157,28 @@ def update_plot():
     image_C02_x = mpimg.imread(filepath + get_filename(candidate_ID, 'x'))
     image_C02_z = mpimg.imread(filepath + get_filename(candidate_ID, 'z'))
     
-
+    
     # whole mouse thumbnail
     ax1 = main_fig.add_subplot(1, 4, 1)
+    plt.cla()
     plt.subplots_adjust(top=0.76)
     whole_mouse_thumbnail = get_whole_mouse_thumbnail(candidate_ID)
+    # draw rectangle around relevant patchvolume
+    lower_left_corner = get_lower_left_corner(candidate_ID)
+    rectangle = Rectangle(lower_left_corner, width=30, height=30, linewidth=1, edgecolor='r', facecolor='none') # DOUBLE CHECK THIS!!!
+    ax1.add_patch(rectangle)
     plt.imshow(whole_mouse_thumbnail, vmin=0, vmax=3000)
     
     ax2 = main_fig.add_subplot(1, 4, 2)
+    plt.cla()
+    ax2.axis('off')
     #patch_projection = get_patch_projection(candidate_ID)
     #plt.imshow(patch_projection)
     #plt.imshow(whole_mouse_thumbnail, vmin=0, vmax=3000)
     
     # channel C00 -- z
     ax3 = main_fig.add_subplot(3, 4, 3)
+    plt.cla()
     ax3.set_title('Projection along z-axis', fontsize='x-large', y=1.2)
     ax3.set_ylabel('C00 channel', rotation=0, fontsize='x-large')
     ax3.yaxis.set_label_coords(-0.5, 0.5)
@@ -167,32 +186,34 @@ def update_plot():
     
     # channel C00 -- x
     ax4 = main_fig.add_subplot(3, 4, 4)
+    plt.cla()
     ax4.set_title('Projection along x-axis', fontsize='x-large', y=1.2)
-    #ax.set_ylabel('C00 channel', rotation=0, fontsize='x-large')
     ax4.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C00_x)
     
     # channel C01 -- z
     ax5 = main_fig.add_subplot(3, 4, 7)
+    plt.cla()
     ax5.set_ylabel('C01 channel', rotation=0, fontsize='x-large')
     ax5.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C01_z) 
     
     # channel C01 -- x
     ax6 = main_fig.add_subplot(3, 4, 8)
-    #ax.set_ylabel('C01 channel', rotation=0, fontsize='x-large')
+    plt.cla()
     ax6.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C01_x)
     
     # channel C02 -- z
     ax7 = main_fig.add_subplot(3, 4, 11)
+    plt.cla()
     ax7.set_ylabel('C02 channel', rotation=0, fontsize='x-large')
     ax7.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C02_z)
     
     # channel C02 -- x
     ax8 = main_fig.add_subplot(3, 4, 12)
-    #ax.set_ylabel('C02 channel', rotation=0, fontsize='x-large')
+    plt.cla()
     ax8.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C02_x)
     
