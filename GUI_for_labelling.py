@@ -45,7 +45,6 @@ mouse = mice[0]
 
 # Global dynamic variables
 main_fig = plt.figure(num=101)
-main_ax_plt = main_fig.gca()
 
 prediction = filehandling.pload(DATAPATH + '/mice_metadata/' + mouse + '/reviewed_prediction.pickledump')
 metastases = prediction['metastases']
@@ -84,6 +83,12 @@ def get_whole_mouse_thumbnail(candidate_ID):
     z_patchstep = patchstep[2]
     whole_mouse_thumbnail = whole_mouse_thumbnails[:, :, z_patchstep]
     return whole_mouse_thumbnail
+    
+'''
+def get_patch_projection(candidate_ID):
+    current_metastasis = get_current_metastasis(candidate_ID)
+    patch_ID = current_metastasis['patch_id']
+'''    
     
 
 def get_filename(candidate_ID, axis):
@@ -140,44 +145,55 @@ def update_plot():
     check_if_file_exists(filepath + get_filename(candidate_ID, 'y'))
     image_C02_x = mpimg.imread(filepath + get_filename(candidate_ID, 'x'))
     image_C02_z = mpimg.imread(filepath + get_filename(candidate_ID, 'z'))
-       
-    # channel C00 -- z
-    ax = plt.subplot(3,2,1)
+    
+
+    # whole mouse thumbnail
+    ax1 = main_fig.add_subplot(1, 4, 1)
     plt.subplots_adjust(top=0.76)
-    ax.set_title('Projection along z-axis', fontsize='x-large', y=1.2)
-    ax.set_ylabel('C00 channel', rotation=0, fontsize='x-large')
-    ax.yaxis.set_label_coords(-0.5, 0.5)
+    whole_mouse_thumbnail = get_whole_mouse_thumbnail(candidate_ID)
+    plt.imshow(whole_mouse_thumbnail, vmin=0, vmax=3000)
+    
+    ax2 = main_fig.add_subplot(1, 4, 2)
+    #patch_projection = get_patch_projection(candidate_ID)
+    #plt.imshow(patch_projection)
+    #plt.imshow(whole_mouse_thumbnail, vmin=0, vmax=3000)
+    
+    # channel C00 -- z
+    ax3 = main_fig.add_subplot(3, 4, 3)
+    ax3.set_title('Projection along z-axis', fontsize='x-large', y=1.2)
+    ax3.set_ylabel('C00 channel', rotation=0, fontsize='x-large')
+    ax3.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C00_z) 
     
     # channel C00 -- x
-    ax = plt.subplot(3,2,2)
-    ax.set_title('Projection along x-axis', fontsize='x-large', y=1.2)
-    ax.set_ylabel('C00 channel', rotation=0, fontsize='x-large')
-    ax.yaxis.set_label_coords(-0.5, 0.5)
+    ax4 = main_fig.add_subplot(3, 4, 4)
+    ax4.set_title('Projection along x-axis', fontsize='x-large', y=1.2)
+    #ax.set_ylabel('C00 channel', rotation=0, fontsize='x-large')
+    ax4.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C00_x)
     
     # channel C01 -- z
-    ax = plt.subplot(3,2,3)
-    ax.set_ylabel('C01 channel', rotation=0, fontsize='x-large')
-    ax.yaxis.set_label_coords(-0.5, 0.5)
+    ax5 = main_fig.add_subplot(3, 4, 7)
+    ax5.set_ylabel('C01 channel', rotation=0, fontsize='x-large')
+    ax5.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C01_z) 
     
     # channel C01 -- x
-    ax = plt.subplot(3,2,4)
-    ax.set_ylabel('C01 channel', rotation=0, fontsize='x-large')
-    ax.yaxis.set_label_coords(-0.5, 0.5)
+    ax6 = main_fig.add_subplot(3, 4, 8)
+    #ax.set_ylabel('C01 channel', rotation=0, fontsize='x-large')
+    ax6.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C01_x)
     
     # channel C02 -- z
-    ax = plt.subplot(3,2,5)
-    ax.set_ylabel('C02 channel', rotation=0, fontsize='x-large')
-    ax.yaxis.set_label_coords(-0.5, 0.5)
+    ax7 = main_fig.add_subplot(3, 4, 11)
+    ax7.set_ylabel('C02 channel', rotation=0, fontsize='x-large')
+    ax7.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C02_z)
     
     # channel C02 -- x
-    ax = plt.subplot(3,2,6)
-    ax.set_ylabel('C02 channel', rotation=0, fontsize='x-large')
-    ax.yaxis.set_label_coords(-0.5, 0.5)
+    ax8 = main_fig.add_subplot(3, 4, 12)
+    #ax.set_ylabel('C02 channel', rotation=0, fontsize='x-large')
+    ax8.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C02_x)
     
     # Update rest
@@ -185,10 +201,7 @@ def update_plot():
     current_mouse_title = 'Mouse ' + mouse + '\n\n' + 'Candidate ' + str(displayed_ID) + ' of ' + str(number_of_candidates) + '\n\n(Actual candidate ID: ' + str(candidate_ID) + ')'
     plt.suptitle(current_mouse_title,  fontsize='x-large', y=0.977)
     
-    whole_mouse_thumbnail = get_whole_mouse_thumbnail(candidate_ID)
-    plt.imshow(whole_mouse_thumbnail, vmin=0, vmax=3000)
-    
-    plt.draw()
+    plt.show()
     
     
     
