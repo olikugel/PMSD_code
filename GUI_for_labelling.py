@@ -60,12 +60,11 @@ region = filehandling.pload(DATAPATH + '/mice_metadata/' + mouse + '/region.pick
 whole_mouse_thumbnails = region['thumbnails']['MaxProjections_Z']
 
 # for debugging
-#for x in range(230):
+#  for x in range(230):
 #    candidate_ID = candidate_IDs.pop(0)
     
-#%% functions
+#%% 
    
-    
 def get_current_metastasis(candidate_ID):
     current_metastasis = dataconversions.filter_dicts(TP_candidates,'global_id',candidate_ID)[0]
     return current_metastasis
@@ -97,8 +96,8 @@ def get_lower_left_corner(candidate_ID):
     patches = region['patches']
     patch = dataconversions.filter_dicts(patches, 'id', patch_ID)[0]
     patchstep = patch['patchstep']
-    lower_left_x = patchstep[1]*30    # DOUBLE CHECK THIS!!!
-    lower_left_y = (patchstep[0])*30  # DOUBLE CHECK THIS!!!
+    lower_left_x = patchstep[1]*30  # DOUBLE CHECK THIS!!!
+    lower_left_y = patchstep[0]*30  # DOUBLE CHECK THIS!!!
     lower_left_corner = (lower_left_x, lower_left_y) 
     return lower_left_corner
 
@@ -124,6 +123,8 @@ def get_met_location(candidate_ID):
     return met_location_along_z
 
 
+#%% 
+    
 def save_decision(decision):
     current_metastasis = get_current_metastasis(candidate_ID)
     current_metastasis['evaluation']['reviewed_via_GUI'] = decision
@@ -140,6 +141,7 @@ def check_if_file_exists(file):
         next_candidate()
 
 
+#%% 
 
 @ignore_warnings
 def update_plot():
@@ -164,7 +166,6 @@ def update_plot():
     check_if_file_exists(filepath + get_filename(candidate_ID, 'y'))
     image_C02_x = mpimg.imread(filepath + get_filename(candidate_ID, 'x'))
     image_C02_z = mpimg.imread(filepath + get_filename(candidate_ID, 'z'))
-    
     
     # show whole-mouse thumbnail
     ax1 = main_fig.add_subplot(1, 4, 1)
@@ -233,6 +234,7 @@ def update_plot():
     plt.show()
     
     
+#%%    
     
 def next_candidate():
     global candidate_IDs, candidate_ID, candidate_dict
@@ -279,6 +281,7 @@ def save_to_file(event):
     print('All decisions saved to file ', filepath_with_filename)
     print('----------------------------------------------------')
 
+
 #%% Launch GUI
 
 # window: Create
@@ -317,7 +320,6 @@ main_w_SA.on_clicked(save_to_file)
 
 next_candidate()
 plt.show(block=True)
-
 
 
 # DECISIONS = filehandling.pload('/home/olikugel/PMSD_data/mice_metadata/H2030IC10dn573/reviewed_via_GUI_by_Oliver_Kugel_on_the_20-11-2019.pickledump')
