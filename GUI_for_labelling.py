@@ -8,6 +8,8 @@ import dataconversions
 import datetime
 import copy
 
+import matplotlib
+matplotlib.use('qt5agg')
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 import matplotlib.image as mpimg
@@ -79,11 +81,15 @@ def get_whole_mouse_thumbnail(candidate_ID):
     whole_mouse_thumbnail = whole_mouse_thumbnails[:, :, z_patchstep]
     return whole_mouse_thumbnail
     
-'''
+
 def get_patch_projection(candidate_ID):
     current_metastasis = get_current_metastasis(candidate_ID)
     patch_ID = current_metastasis['patch_id']
-'''    
+    filepath = DATAPATH + '/z_projections/' + mouse + '/'
+    filename = 'data_patch_' + str(patch_ID) + '_Z.pickledump'
+    patch_projection = filehandling.pload(filepath + filename)['raw']
+    return patch_projection
+
     
 def get_lower_left_corner(candidate_ID):
     current_metastasis = get_current_metastasis(candidate_ID)
@@ -91,8 +97,8 @@ def get_lower_left_corner(candidate_ID):
     patches = region['patches']
     patch = dataconversions.filter_dicts(patches, 'id', patch_ID)[0]
     patchstep = patch['patchstep']
-    lower_left_x = patchstep[1]*30      # DOUBLE CHECK THIS!!!
-    lower_left_y = (patchstep[0]+1)*30  # DOUBLE CHECK THIS!!!
+    lower_left_x = patchstep[1]*30    # DOUBLE CHECK THIS!!!
+    lower_left_y = (patchstep[0])*30  # DOUBLE CHECK THIS!!!
     lower_left_corner = (lower_left_x, lower_left_y) 
     return lower_left_corner
 
@@ -107,7 +113,15 @@ def get_filename(candidate_ID, axis):
     filename_prefix = 'patch' + patch_ID_padded + '_met' + met_ID_padded
     filename = filename_prefix + '_' + axis + '.png'
     return filename
+   
     
+def get_met_location(candidate_ID):
+    current_metastasis = get_current_metastasis(candidate_ID)
+    met_location = current_metastasis['offset'] + current_metastasis['CoM']
+    y_offset = met_location[0]
+    x_offset = met_location[1]
+    met_location_along_z = (x_offset, y_offset)
+    return met_location_along_z
 
 
 def save_decision(decision):
@@ -115,7 +129,6 @@ def save_decision(decision):
     current_metastasis['evaluation']['reviewed_via_GUI'] = decision
     current_metastasis['evaluation']['annotator_via_GUI'] = NAME_OF_ANNOTATOR
     current_metastasis['evaluation']['date_of_review_via_GUI'] = DATE_OF_TODAY
-
 
 
 def check_if_file_exists(file):
@@ -165,45 +178,50 @@ def update_plot():
     ax1.add_patch(rectangle)
     plt.imshow(whole_mouse_thumbnail, vmin=0, vmax=3000)
     
-    # show projection of current patchvolume
+    # show projection of current patchvolume (C02-channel, along z-axis)
     ax2 = main_fig.add_subplot(1, 4, 2)
-    ax2.axis('off')
-    #patch_projection = get_patch_projection(candidate_ID)
-    #plt.imshow(patch_projection)
-    #plt.imshow(whole_mouse_thumbnail, vmin=0, vmax=3000)
+    patch_projection = get_patch_projection(candidate_ID)
+    plt.cla() # clear previous arrow
+    plt.imshow(patch_projection)
+    
+    # draw arrow in patchvolume-projection to pinpoint current metastasis
+    met_location = get_met_location(candidate_ID)
+    plt.annotate('',xy=met_location, xycoords='data',
+                         xytext=(0,0), textcoords='data',
+                         arrowprops=dict(width=1,color='red',shrink=0.03), color='red')
     
     # channel C00 -- z
     ax3 = main_fig.add_subplot(3, 4, 3)
     ax3.set_title('Projection along z-axis', fontsize='x-large', y=1.2)
-    ax3.set_ylabel('C00 channel', rotation=0, fontsize='x-large')
     ax3.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C00_z) 
     
     # channel C00 -- x
     ax4 = main_fig.add_subplot(3, 4, 4)
     ax4.set_title('Projection along x-axis', fontsize='x-large', y=1.2)
+    ax4.set_ylabel('C00 channel', rotation=0, fontsize='x-large')
     ax4.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C00_x)
     
     # channel C01 -- z
     ax5 = main_fig.add_subplot(3, 4, 7)
-    ax5.set_ylabel('C01 channel', rotation=0, fontsize='x-large')
     ax5.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C01_z) 
     
     # channel C01 -- x
     ax6 = main_fig.add_subplot(3, 4, 8)
+    ax6.set_ylabel('C01 channel', rotation=0, fontsize='x-large')
     ax6.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C01_x)
     
     # channel C02 -- z
     ax7 = main_fig.add_subplot(3, 4, 11)
-    ax7.set_ylabel('C02 channel', rotation=0, fontsize='x-large')
     ax7.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C02_z)
     
     # channel C02 -- x
     ax8 = main_fig.add_subplot(3, 4, 12)
+    ax8.set_ylabel('C02 channel', rotation=0, fontsize='x-large')
     ax8.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C02_x)
     
@@ -213,7 +231,6 @@ def update_plot():
     plt.suptitle(current_mouse_title,  fontsize='x-large', y=0.977)
     
     plt.show()
-    
     
     
     
@@ -266,7 +283,6 @@ def save_to_file(event):
 
 # window: Create
 plt.figure(main_fig.number)
-
 plt.get_current_fig_manager().window.showMaximized()
 screensize = main_fig.get_size_inches()*main_fig.dpi
 buttontext_size = 15
