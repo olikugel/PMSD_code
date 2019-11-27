@@ -1,5 +1,13 @@
-CODEPATH = '/home/olikugel/PMSD_code'
-DATAPATH = '/home/olikugel/PMSD_data'
+from uuid import getnode as get_mac
+mac_address = get_mac()
+mac_address = str(hex(mac_address)).replace('0x','')
+if mac_address == 'd16adaee4245': # running on remote server
+  CODEPATH = '/home/oschoppe/Documents/OKugel/PMSD_code'
+  DATAPATH = '/home/oschoppe/Documents/OKugel/PMSD_data'  
+else: # running on local machine
+  CODEPATH = '/home/olikugel/PMSD_code'
+  DATAPATH = '/home/olikugel/PMSD_data'    
+
 import sys
 sys.path.insert(0, CODEPATH + '/helperfunctions')
 
