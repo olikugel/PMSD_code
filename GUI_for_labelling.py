@@ -47,7 +47,6 @@ prediction = filehandling.pload(DATAPATH + '/mice_metadata/' + mouse + '/reviewe
 metastases = prediction['metastases']
 TP_candidates = dataconversions.filter_dicts(metastases,'evaluation-manually_confirmed',True)
 number_of_candidates = len(TP_candidates)
-candidate_dict = {}
 
 candidate_IDs = []
 for TP_candidate in TP_candidates:
@@ -60,7 +59,7 @@ region = filehandling.pload(DATAPATH + '/mice_metadata/' + mouse + '/region.pick
 whole_mouse_thumbnails = region['thumbnails']['MaxProjections_Z']
 
 # for debugging
-#  for x in range(230):
+#for x in range(230):
 #    candidate_ID = candidate_IDs.pop(0)
     
 #%% 
@@ -96,8 +95,8 @@ def get_lower_left_corner(candidate_ID):
     patches = region['patches']
     patch = dataconversions.filter_dicts(patches, 'id', patch_ID)[0]
     patchstep = patch['patchstep']
-    lower_left_x = patchstep[1]*30  # DOUBLE CHECK THIS!!!
-    lower_left_y = patchstep[0]*30  # DOUBLE CHECK THIS!!!
+    lower_left_x = patchstep[1]*30
+    lower_left_y = patchstep[0]*30
     lower_left_corner = (lower_left_x, lower_left_y) 
     return lower_left_corner
 
@@ -167,14 +166,14 @@ def update_plot():
     image_C02_x = mpimg.imread(filepath + get_filename(candidate_ID, 'x'))
     image_C02_z = mpimg.imread(filepath + get_filename(candidate_ID, 'z'))
     
-    # show whole-mouse thumbnail
+    # load whole-mouse thumbnail
     ax1 = main_fig.add_subplot(1, 4, 1)
     plt.subplots_adjust(top=0.76)
     whole_mouse_thumbnail = get_whole_mouse_thumbnail(candidate_ID)
     
-    # draw rectangle around current patchvolume
+    # show whole-mouse thumbnail and draw rectangle around current patchvolume
     lower_left_corner = get_lower_left_corner(candidate_ID)
-    rectangle = Rectangle(lower_left_corner, width=30, height=30, linewidth=2, edgecolor='r', facecolor='none') # DOUBLE CHECK THIS!!!
+    rectangle = Rectangle(lower_left_corner, width=30, height=30, linewidth=2, edgecolor='r', facecolor='none')
     plt.cla() # clear previous rectangle
     ax1.add_patch(rectangle)
     plt.imshow(whole_mouse_thumbnail, vmin=0, vmax=3000)
@@ -226,7 +225,7 @@ def update_plot():
     ax8.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C02_x)
     
-    # Update rest
+    # Update title
     displayed_ID = all_candidate_IDs.index(candidate_ID) + 1
     current_mouse_title = 'Mouse ' + mouse + '\n\n' + 'Candidate ' + str(displayed_ID) + ' of ' + str(number_of_candidates) + '\n\n(Actual candidate ID: ' + str(candidate_ID) + ')'
     plt.suptitle(current_mouse_title,  fontsize='x-large', y=0.977)
@@ -237,7 +236,7 @@ def update_plot():
 #%%    
     
 def next_candidate():
-    global candidate_IDs, candidate_ID, candidate_dict
+    global candidate_IDs, candidate_ID
     
     if len(candidate_IDs) > 0: 
         candidate_ID = candidate_IDs.pop(0)
