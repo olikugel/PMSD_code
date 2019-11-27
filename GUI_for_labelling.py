@@ -176,12 +176,16 @@ def update_plot():
     rectangle = Rectangle(lower_left_corner, width=30, height=30, linewidth=2, edgecolor='r', facecolor='none')
     plt.cla() # clear previous rectangle
     ax1.add_patch(rectangle)
+    ax1.set_title('Whole mouse, top view', fontsize='x-large', y=1.05)
+    ax1.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(whole_mouse_thumbnail, vmin=0, vmax=3000)
     
     # show projection of current patchvolume (C02-channel, along z-axis)
     ax2 = main_fig.add_subplot(1, 4, 2)
     patch_projection = get_patch_projection(candidate_ID)
     plt.cla() # clear previous arrow
+    ax2.set_title('MIP of 300³-patch, top view, C02 channel', fontsize='x-large', y=1.15)
+    ax2.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(patch_projection)
     
     # draw arrow in patchvolume-projection to pinpoint current metastasis
@@ -192,37 +196,35 @@ def update_plot():
     
     # channel C00 -- z
     ax3 = main_fig.add_subplot(3, 4, 3)
-    ax3.set_title('Projection along z-axis', fontsize='x-large', y=1.2)
+    ax3.set_title('MIP of 50³-patch, top view', fontsize='x-large', y=1.2)
     ax3.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C00_z) 
     
     # channel C00 -- x
     ax4 = main_fig.add_subplot(3, 4, 4)
-    ax4.set_title('Projection along x-axis', fontsize='x-large', y=1.2)
+    ax4.set_title('MIP of 50³-patch, side view', fontsize='x-large', y=1.2)
     ax4.set_ylabel('C00 channel', rotation=0, fontsize='x-large')
-    ax4.yaxis.set_label_coords(-0.5, 0.5)
+    ax4.yaxis.set_label_coords(-0.45, 0.45)
     plt.imshow(image_C00_x)
     
     # channel C01 -- z
     ax5 = main_fig.add_subplot(3, 4, 7)
-    ax5.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C01_z) 
     
     # channel C01 -- x
     ax6 = main_fig.add_subplot(3, 4, 8)
     ax6.set_ylabel('C01 channel', rotation=0, fontsize='x-large')
-    ax6.yaxis.set_label_coords(-0.5, 0.5)
+    ax6.yaxis.set_label_coords(-0.45, 0.45)
     plt.imshow(image_C01_x)
     
     # channel C02 -- z
     ax7 = main_fig.add_subplot(3, 4, 11)
-    ax7.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C02_z)
     
     # channel C02 -- x
     ax8 = main_fig.add_subplot(3, 4, 12)
     ax8.set_ylabel('C02 channel', rotation=0, fontsize='x-large')
-    ax8.yaxis.set_label_coords(-0.5, 0.5)
+    ax8.yaxis.set_label_coords(-0.45, 0.45)
     plt.imshow(image_C02_x)
     
     # Update title
@@ -320,5 +322,15 @@ main_w_SA.on_clicked(save_to_file)
 next_candidate()
 plt.show(block=True)
 
-
-# DECISIONS = filehandling.pload('/home/olikugel/PMSD_data/mice_metadata/H2030IC10dn573/reviewed_via_GUI_by_Oliver_Kugel_on_the_20-11-2019.pickledump')
+#%%
+'''
+DECISIONS = filehandling.pload('/home/olikugel/PMSD_data/mice_metadata/H2030IC10dn573/reviewed_via_GUI_by_Oliver_Kugel_on_the_27-11-2019.pickledump')
+number_of_TP_decisions  = len(dataconversions.filter_dicts(DECISIONS,'evaluation-reviewed_via_GUI','true positive'))
+number_of_FP_decisions  = len(dataconversions.filter_dicts(DECISIONS,'evaluation-reviewed_via_GUI','false positive'))
+number_of_UC_decisions  = len(dataconversions.filter_dicts(DECISIONS,'evaluation-reviewed_via_GUI','unclear'))
+number_of_filenotfounds = len(dataconversions.filter_dicts(DECISIONS,'evaluation-reviewed_via_GUI','could not load image files'))
+print('Number of true positive decisions: ', number_of_TP_decisions)
+print('Number of false positive decisions: ', number_of_FP_decisions)
+print('Number of unclear decisions: ', number_of_UC_decisions)
+print('Number of file-not-founds: ', number_of_filenotfounds)
+'''
