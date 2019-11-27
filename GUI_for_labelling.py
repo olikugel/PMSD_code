@@ -10,14 +10,14 @@ lines = output.split('\\n')
 for line in lines:
     if "Machine ID" in line:
         machine_ID = line.strip().replace("Machine ID: ", "")
-        print("\nMachine ID: ", machine_ID, "\n")
+        print("\nMachine:\t", machine_ID)
 
 if machine_ID == '83011c94751c4629a5d4c426051b3041':   # running on local machine
-  CODEPATH = '/home/olikugel/PMSD_code'
-  DATAPATH = '/home/olikugel/PMSD_data'  
+    CODEPATH = '/home/olikugel/PMSD_code'
+    DATAPATH = '/home/olikugel/PMSD_data'  
 elif machine_ID == '14bef0a2877e464f877ca6ab665b81e8': # running on remote server
-  CODEPATH = '/home/oschoppe/Documents/OKugel/PMSD_code'
-  DATAPATH = '/home/oschoppe/Documents/OKugel/PMSD_data'  
+    CODEPATH = '/home/oschoppe/Documents/OKugel/PMSD_code'
+    DATAPATH = '/home/oschoppe/Documents/OKugel/PMSD_data'  
 else:
     sys.exit('Running on unknown machine. Cannot set basepaths. Exiting.')
 
@@ -51,13 +51,13 @@ def ignore_warnings(f):
 NAME_OF_ANNOTATOR = 'Oliver Kugel'
 d = datetime.datetime.today()
 DATE_OF_TODAY = d.strftime('%d-%m-%Y')
-print()
-print("Annotator: ", NAME_OF_ANNOTATOR)
-print ("Today's date: ", DATE_OF_TODAY)
-print()
+print("Annotator:\t", NAME_OF_ANNOTATOR)
+print ("Today's date:\t", DATE_OF_TODAY)
 
 mice = ['H2030IC10dn573','IC2dn2','IC6dn1','IC6dn2', 'IC14dn1', 'MCF7IC21dn528']
 mouse = mice[0]
+print("Mouse:\t\t", mouse)
+print()
 
 #%% 
 
