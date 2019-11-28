@@ -178,7 +178,7 @@ def update_plot():
     rectangle = Rectangle(lower_left_corner, width=30, height=30, linewidth=2, edgecolor='r', facecolor='none')
     plt.cla() # clear previous rectangle
     ax1.add_patch(rectangle)
-    ax1.set_title('Whole mouse, top view', fontsize='x-large', y=1.05)
+    ax1.set_title('Whole mouse, top view', fontsize='large', y=1.05)
     ax1.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(whole_mouse_thumbnail, vmin=0, vmax=3000)
     
@@ -186,7 +186,7 @@ def update_plot():
     ax2 = main_fig.add_subplot(1, 4, 2)
     patch_projection = get_patch_projection(candidate_ID)
     plt.cla() # clear previous arrow
-    ax2.set_title('MIP of 300³-patch, top view, C02 channel', fontsize='x-large', y=1.15)
+    ax2.set_title('MIP of 300³-patch, top view, C02 channel', fontsize='large', y=1.15)
     ax2.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(patch_projection)
     
@@ -198,14 +198,14 @@ def update_plot():
     
     # channel C00 -- z
     ax3 = main_fig.add_subplot(3, 4, 3)
-    ax3.set_title('MIP of 50³-patch, top view', fontsize='x-large', y=1.2)
+    ax3.set_title('MIP of 50³-patch, top view', fontsize='large', y=1.2)
     ax3.yaxis.set_label_coords(-0.5, 0.5)
     plt.imshow(image_C00_z) 
     
     # channel C00 -- x
     ax4 = main_fig.add_subplot(3, 4, 4)
-    ax4.set_title('MIP of 50³-patch, side view', fontsize='x-large', y=1.2)
-    ax4.set_ylabel('C00 channel', rotation=0, fontsize='x-large')
+    ax4.set_title('MIP of 50³-patch, side view', fontsize='large', y=1.2)
+    ax4.set_ylabel('C00 channel', rotation=0, fontsize='large')
     ax4.yaxis.set_label_coords(-0.45, 0.45)
     plt.imshow(image_C00_x)
     
@@ -215,7 +215,7 @@ def update_plot():
     
     # channel C01 -- x
     ax6 = main_fig.add_subplot(3, 4, 8)
-    ax6.set_ylabel('C01 channel', rotation=0, fontsize='x-large')
+    ax6.set_ylabel('C01 channel', rotation=0, fontsize='large')
     ax6.yaxis.set_label_coords(-0.45, 0.45)
     plt.imshow(image_C01_x)
     
@@ -225,7 +225,7 @@ def update_plot():
     
     # channel C02 -- x
     ax8 = main_fig.add_subplot(3, 4, 12)
-    ax8.set_ylabel('C02 channel', rotation=0, fontsize='x-large')
+    ax8.set_ylabel('C02 channel', rotation=0, fontsize='large')
     ax8.yaxis.set_label_coords(-0.45, 0.45)
     plt.imshow(image_C02_x)
     
