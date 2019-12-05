@@ -1,3 +1,16 @@
+
+NAME_OF_ANNOTATOR = input("What's your name? ")
+mice = ['H2030IC10dn573','IC2dn2','IC6dn1','IC6dn2', 'IC14dn1', 'MCF7IC21dn528', 'PC14dn04595']
+print()
+print("Please choose a mouse:")
+for m in enumerate(mice):
+    print('[', m[0], ']', ' ', m[1])
+chosen_index = input()
+mouse = mice[int(chosen_index)]
+print('\n-------------------------------------------------------------------------------------------------------')
+
+#%%
+
 import sys
 import basepaths
 
@@ -30,14 +43,10 @@ def ignore_warnings(f):
 
 #%%
 
-NAME_OF_ANNOTATOR = 'Oliver Kugel'
 d = datetime.datetime.today()
 DATE_OF_TODAY = d.strftime('%d-%m-%Y')
 print("Annotator:\t", NAME_OF_ANNOTATOR)
 print ("Today's date:\t", DATE_OF_TODAY)
-
-mice = ['H2030IC10dn573','IC2dn2','IC6dn1','IC6dn2', 'IC14dn1', 'MCF7IC21dn528', 'PC14dn04595']
-mouse = mice[6]
 print("Mouse:\t\t", mouse)
 print()
 
