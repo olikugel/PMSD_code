@@ -7,7 +7,7 @@ for m in enumerate(mice):
     print('[', m[0], ']', ' ', m[1])
 chosen_index = input()
 mouse = mice[int(chosen_index)]
-print('\n-------------------------------------------------------------------------------------------------------')
+print('\n-------------------------------------------------')
 
 #%%
 
@@ -68,11 +68,7 @@ print('All candidate IDs: ', all_candidate_IDs)
 
 region = filehandling.pload(DATAPATH + '/mice_metadata/' + mouse + '/region.pickledump')
 whole_mouse_thumbnails = region['thumbnails']['MaxProjections_Z']
-
-# for debugging
-#for x in range(230):
-#    candidate_ID = candidate_IDs.pop(0)
-    
+  
 #%% 
    
 def get_current_metastasis(candidate_ID):
@@ -335,7 +331,7 @@ plt.show(block=True)
 
 #%%
 '''
-DECISIONS = filehandling.pload('/home/olikugel/PMSD_data/mice_metadata/H2030IC10dn573/reviewed_via_GUI_by_Oliver_Kugel_on_the_27-11-2019.pickledump')
+DECISIONS = filehandling.pload('-----decision-file-----')
 number_of_TP_decisions  = len(dataconversions.filter_dicts(DECISIONS,'evaluation-reviewed_via_GUI','true positive'))
 number_of_FP_decisions  = len(dataconversions.filter_dicts(DECISIONS,'evaluation-reviewed_via_GUI','false positive'))
 number_of_UC_decisions  = len(dataconversions.filter_dicts(DECISIONS,'evaluation-reviewed_via_GUI','unclear'))
