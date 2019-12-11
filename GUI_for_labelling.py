@@ -22,6 +22,7 @@ import filehandling
 import dataconversions
 import datetime
 import copy
+import numpy as np
 
 import matplotlib
 matplotlib.use('qt5agg')
@@ -185,7 +186,7 @@ def update_plot():
     ax1.add_patch(rectangle)
     ax1.set_title('Whole mouse, top view', fontsize='large', y=1.05)
     ax1.yaxis.set_label_coords(-0.5, 0.5)
-    plt.imshow(whole_mouse_thumbnail, vmin=0, vmax=3000)
+    plt.imshow(whole_mouse_thumbnail, vmin=0, vmax=np.percentile(whole_mouse_thumbnail, 99.6))
     
     # show projection of current patchvolume (C02-channel, along z-axis)
     ax2 = main_fig.add_subplot(1, 4, 2)
