@@ -8,15 +8,9 @@ import sys
 import numpy as np
 from torchvision.transforms import transforms
 
+CODEPATH = '/home/okugel/PMSD_code'
+DATAPATH = '/home/okugel/PMSD_data'
 
-# helper function to convert array to tensor
-def array_to_tensor(array):
-    """
-    Should be standard in future
-    """
-    array = array.astype(np.float32)
-    tensor = torch.from_numpy(array).type(torch.FloatTensor)
-    return tensor
 
 # helper function to pad ID with zeros
 def pad_ID(ID):
@@ -34,53 +28,39 @@ def pad_ID(ID):
     return ID_padded
 
 
+
 class MetDataset(Dataset):
-    def __init__(self, points, pointIDs, labels, dataFolder):
-        """
-        Loads & returns tensors of all 3 projections of input (and mask) based on patch IDs.
-        --> This is used for evaluation of test set where we want to assess the full power by
-        making use of all 3 projections at once.
-        --> this is NOT used for training
-        Thus, no augmentation or maskweighting is needed/valid
-        """
-        self.points = points
-        self.pointIDs = pointIDs
-        self.labels = labels
-        self.dataFolder = dataFolder
+    def __init__(self, samplecards):
+        self.samplecards = samplecards
 
     def __getitem__(self, index):
-        point_as_string = self.points[index]
-        pointID = self.pointIDs[index]
-        label = self.labels[index]
+        samplecard = self.samplecards[index]
 
         images = torch.tensor(np.zeros((6,50,50),np.float32))
-        for a, axis in enumerate(['y','x','z']):
-            cancer_image   = imageio.imread(self.dataFolder + '/point' + pad_ID(pointID) + '_TB_' + point_as_string + '_' + label + '_' + axis + '.png')
-            autofluo_image = imageio.imread(self.dataFolder + '/point' + pad_ID(pointID) + '_AF_' + point_as_string + '_' + label + '_' + axis + '.png')
-            '''
-            transform = transforms.Compose([
-               transforms.ToTensor(),
-               transforms.Normalize((0.5),(0.5))
-            ])
-            images[a] = transform(cancer_image)
-            images[a+3] = transform(autofluo_image)
-            '''
-            cancer_image   = array_to_tensor(cancer_image)
-            autofluo_image = array_to_tensor(autofluo_image)
-            normalize_image = transforms.Normalize((0.5),(0.5))
-            print('pointID = ' + str(pointID))
-            print('a = ' + str(a))
-            print('axis = ' + str(axis))
-            images[a] = normalize_image(cancer_image) # tumorBoost y, x, z
-            images[a+3] = normalize_image(autofluo_image) # autofluo y, x, z
+        for a, axis in enumerate(['x','z']):
+            C00_image = imageio.imread(DATAPATH + '/Potential_TP_Metastases/' + samplecard['mouse'] + '/C00/ROI_50/PNG/patch' + pad_ID(samplecard['patch_id']) + '_met' + pad_ID(samplecard['met_id']) + '_' + axis + '.png', as_gray=True)
+            C01_image = imageio.imread(DATAPATH + '/Potential_TP_Metastases/' + samplecard['mouse'] + '/C01/ROI_50/PNG/patch' + pad_ID(samplecard['patch_id']) + '_met' + pad_ID(samplecard['met_id']) + '_' + axis + '.png', as_gray=True)
+            C02_image = imageio.imread(DATAPATH + '/Potential_TP_Metastases/' + samplecard['mouse'] + '/C02/ROI_50/PNG/patch' + pad_ID(samplecard['patch_id']) + '_met' + pad_ID(samplecard['met_id']) + '_' + axis + '.png', as_gray=True)
 
-        if(self.labels is None):
-            # We are in prediction mode
-            return images
-        else:
-            # We are in validating or testing mode
-            return  images, label
+            transformations = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize((0.5,), (0.5,))])
+
+            images[a]   = transformations(C00_image) # C00-x and C00-z
+            images[a+2] = transformations(C01_image) # C01-x and C01-z
+            images[a+4] = transformations(C02_image) # C02-x and C02-z
+
+        label = samplecard['label']
+        # label needs to be numeric
+        if label == 'true positive':
+            label = 1
+        elif label == 'false positive':
+            label = 0
+
+        sample = (images, label)
+        return sample
 
 
     def __len__(self):
-        return len(self.pointIDs)
+        number_of_samples = len(self.samplecards)
+        return number_of_samples

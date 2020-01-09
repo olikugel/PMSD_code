@@ -9,7 +9,16 @@ from build_dataset import MetDataset
 import numpy as np
 import pickle
 
-GPU_ID = 0
+GPU_ID = 7
+
+CODEPATH = '/home/okugel/PMSD_code'
+DATAPATH = '/home/okugel/PMSD_data'
+
+import sys
+sys.path.insert(0, CODEPATH + '/helperfunctions')
+import filehandling
+
+
 
 class Unit(nn.Module):
     def __init__(self,in_channels,out_channels):
@@ -32,7 +41,7 @@ class SimpleNet(nn.Module):
         super(SimpleNet,self).__init__()
 
         #Create 14 layers of the unit with max pooling in between
-        self.unit1 = Unit(in_channels=3,out_channels=32)
+        self.unit1 = Unit(in_channels=6,out_channels=32)
         self.unit2 = Unit(in_channels=32, out_channels=32)
         self.unit3 = Unit(in_channels=32, out_channels=32)
 
@@ -74,21 +83,15 @@ class SimpleNet(nn.Module):
 
 #####################################################################################################
 
-batch_size = 32 # or 16?
+batch_size = 32
 
-f = open("points_and_labels.pkl","rb")
-points_and_labels = pickle.load(f)
-pointIDs = list(points_and_labels.keys())
-points_with_label = list(points_and_labels.values())
-points = [i[0] for i in points_with_label]
-labels = [i[1] for i in points_with_label]
-dataFolder = './met_images/All'
+#load list of samplecards
+samplecards = filehandling.pload(DATAPATH + '/mice_metadata/' + 'list_of_samplecards.pickledump')
 
-#Load the data set
-dataset = MetDataset(points, pointIDs, labels, dataFolder)
+#load dataset
+dataset = MetDataset(samplecards)
 
-
-# split dataset into train-set and test-set
+#split dataset into train-set and test-set
 train_size = int(0.8 * len(dataset))
 test_size = len(dataset) - train_size
 train_set, test_set = torch.utils.data.random_split(dataset, [train_size, test_size])
@@ -111,11 +114,12 @@ model = SimpleNet(num_classes=2)
 
 if cuda_avail:
     print('Cuda is available.')
-    model.cuda()
+    # model.cuda()
     torch.cuda.init()
     torch.cuda.set_device(GPU_ID)
     print('Using GPU ' + str(GPU_ID))
     torch.cuda.empty_cache()
+    model.cuda()
 else:
     print('Cuda is not available.')
 

@@ -332,7 +332,16 @@ plt.show(block=True)
 
 #%%
 '''
-DECISIONS = filehandling.pload('-----decision-file-----')
+TP_candidates = TP_candidates[:-1]
+filename = 'reviewed_via_GUI_by_' + NAME_OF_ANNOTATOR.replace(' ', '_') + '_on_the_' + DATE_OF_TODAY + '.pickledump'
+filepath_with_filename = DATAPATH + '/mice_metadata/' + mouse + '/' + filename
+filehandling.psave(filepath_with_filename, TP_candidates)
+print()
+print('----------------------------------------------------')
+print('All decisions saved to file ', filepath_with_filename)
+print('----------------------------------------------------')
+
+DECISIONS = TP_candidates
 number_of_TP_decisions  = len(dataconversions.filter_dicts(DECISIONS,'evaluation-reviewed_via_GUI','true positive'))
 number_of_FP_decisions  = len(dataconversions.filter_dicts(DECISIONS,'evaluation-reviewed_via_GUI','false positive'))
 number_of_UC_decisions  = len(dataconversions.filter_dicts(DECISIONS,'evaluation-reviewed_via_GUI','unclear'))
