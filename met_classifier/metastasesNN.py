@@ -1,13 +1,11 @@
 #Import needed packages
 import torch
 import torch.nn as nn
-from torchvision.transforms import transforms
 from torch.utils.data import DataLoader
 from torch.optim import Adam
-from torch.autograd import Variable
 from build_dataset import MetDataset
 import numpy as np
-import pickle
+from sklearn.model_selection import KFold
 
 GPU_ID = 7
 
@@ -83,49 +81,6 @@ class SimpleNet(nn.Module):
 
 #####################################################################################################
 
-batch_size = 32
-
-#load list of samplecards
-samplecards = filehandling.pload(DATAPATH + '/mice_metadata/' + 'list_of_samplecards.pickledump')
-
-#load dataset
-dataset = MetDataset(samplecards)
-
-#split dataset into train-set and test-set
-train_size = int(0.8 * len(dataset))
-test_size = len(dataset) - train_size
-train_set, test_set = torch.utils.data.random_split(dataset, [train_size, test_size])
-print('Size of test_set: ' + str(len(test_set)))
-print('Size of train_set: ' + str(len(train_set)))
-
-#Create a loader for the training set
-train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True,  num_workers=4)
-
-#Create a loader for the test set
-test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False,  num_workers=4)
-
-#####################################################################################################
-
-#Check if gpu support is available
-cuda_avail = torch.cuda.is_available()
-
-#Create model, optimizer and loss function
-model = SimpleNet(num_classes=2)
-
-if cuda_avail:
-    print('Cuda is available.')
-    # model.cuda()
-    torch.cuda.init()
-    torch.cuda.set_device(GPU_ID)
-    print('Using GPU ' + str(GPU_ID))
-    torch.cuda.empty_cache()
-    model.cuda()
-else:
-    print('Cuda is not available.')
-
-optimizer = Adam(model.parameters(), lr=0.001,weight_decay=0.0001)
-loss_fn = nn.CrossEntropyLoss()
-
 #Create a learning rate adjustment function that divides the learning rate by 10 every 30 epochs
 def adjust_learning_rate(epoch):
 
@@ -183,7 +138,7 @@ def test():
         number_of_TNs += np.sum(np.logical_and(prediction.cpu().numpy() == 0, labels.data.cpu().numpy() == 0))
         number_of_FNs += np.sum(np.logical_and(prediction.cpu().numpy() == 0, labels.data.cpu().numpy() == 1))
 
-
+    global test_size
     test_acc = float(number_of_Ts) / test_size
     precision = number_of_TPs / (number_of_TPs + number_of_FPs)
     recall = number_of_TPs / (number_of_TPs + number_of_FNs)
@@ -238,6 +193,7 @@ def train(num_epochs):
         adjust_learning_rate(epoch)
 
         #Compute the average acc and loss over all training images
+        global train_size
         train_acc = train_acc / train_size
         train_loss = train_loss / train_size
 
@@ -258,4 +214,53 @@ def train(num_epochs):
 
 
 if __name__ == "__main__":
-    train(100)
+    
+    #Check if gpu support is available
+    cuda_avail = torch.cuda.is_available()
+    
+    #Create model, optimizer and loss function
+    model = SimpleNet(num_classes=2)
+    
+    if cuda_avail:
+        print('Cuda is available.')
+        torch.cuda.init()
+        torch.cuda.set_device(GPU_ID)
+        print('Using GPU ' + str(GPU_ID))
+        torch.cuda.empty_cache()
+        model.cuda()
+    else:
+        print('Cuda is not available.')
+    
+    optimizer = Adam(model.parameters(), lr=0.001,weight_decay=0.0001)
+    loss_fn = nn.CrossEntropyLoss()
+    
+    batch_size = 32
+    
+    #load list of samplecards
+    samplecards = filehandling.pload(DATAPATH + '/mice_metadata/' + 'list_of_samplecards.pickledump')
+    
+    #load dataset
+    dataset = MetDataset(samplecards)
+    
+    #split dataset into train-set and test-set using k-fold cross-validation
+    kfold = KFold(5, False, 1) # 5-fold, no prior shuffling, 1 as seed
+    for train_set, test_set in kfold.split(dataset):
+        print('train set: %s, test set: %s' % (train_set, test_set))
+        '''
+        #old approach (without cross-validation)
+        train_size = int(0.8 * len(dataset))
+        test_size = len(dataset) - train_size
+        train_set, test_set = torch.utils.data.random_split(dataset, [train_size, test_size])
+        '''
+        train_size = len(train_set)
+        test_size = len(test_set)
+        print('Size of train_set: ' + str(train_size))
+        print('Size of test_set: ' + str(test_size))
+        
+        #Create a loader for the training set
+        train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True,  num_workers=4)
+        
+        #Create a loader for the test set
+        test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False,  num_workers=4)
+        
+        train(10)
