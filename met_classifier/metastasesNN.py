@@ -253,15 +253,16 @@ def train(num_epochs):
 if __name__ == "__main__":
     
     #split dataset into train-set and test-set using k-fold cross-validation
-    kfold = KFold(5, False, 1) # 5-fold, no prior shuffling, 1 as seed
-    for train_set, test_set in kfold.split(dataset):
-        print('train set: %s, test set: %s' % (train_set, test_set))
-        '''
-        #old approach (without cross-validation)
+    #kfold = KFold(5, True, 1) # 5-fold, prior shuffling, 1 as seed
+    #for train_set, test_set in kfold.split(dataset):
+        #print('train set: %s, test set: %s' % (train_set, test_set))
+
+    #old approach (without cross-validation)
+    for fold in range(5):
         train_size = int(0.8 * len(dataset))
         test_size = len(dataset) - train_size
         train_set, test_set = torch.utils.data.random_split(dataset, [train_size, test_size])
-        '''
+
         train_size = len(train_set)
         test_size = len(test_set)
         print('Size of train_set: ' + str(train_size))
