@@ -79,7 +79,39 @@ class SimpleNet(nn.Module):
         return output
 
 
+
 #####################################################################################################
+        
+#Check if gpu support is available
+cuda_avail = torch.cuda.is_available()
+
+#Create model, optimizer and loss function
+model = SimpleNet(num_classes=2)
+
+if cuda_avail:
+    print('Cuda is available.')
+    torch.cuda.init()
+    torch.cuda.set_device(GPU_ID)
+    print('Using GPU ' + str(GPU_ID))
+    torch.cuda.empty_cache()
+    model.cuda()
+else:
+    print('Cuda is not available.')
+
+optimizer = Adam(model.parameters(), lr=0.001,weight_decay=0.0001)
+loss_fn = nn.CrossEntropyLoss()
+
+batch_size = 32
+
+#load list of samplecards
+samplecards = filehandling.pload(DATAPATH + '/mice_metadata/' + 'list_of_samplecards.pickledump')
+
+#load dataset
+dataset = MetDataset(samplecards)
+
+#####################################################################################################
+
+
 
 #Create a learning rate adjustment function that divides the learning rate by 10 every 30 epochs
 def adjust_learning_rate(epoch):
@@ -112,7 +144,9 @@ def save_models(epoch):
 
 def test():
     model.eval()
-    # test_acc = 0.0
+    
+    global test_loader
+    global test_size
     number_of_Ts = 0 # trues
     number_of_Fs = 0 # falses
     number_of_TPs = 0 # true positives
@@ -138,7 +172,6 @@ def test():
         number_of_TNs += np.sum(np.logical_and(prediction.cpu().numpy() == 0, labels.data.cpu().numpy() == 0))
         number_of_FNs += np.sum(np.logical_and(prediction.cpu().numpy() == 0, labels.data.cpu().numpy() == 1))
 
-    global test_size
     test_acc = float(number_of_Ts) / test_size
     precision = number_of_TPs / (number_of_TPs + number_of_FPs)
     recall = number_of_TPs / (number_of_TPs + number_of_FNs)
@@ -157,7 +190,12 @@ def test():
 
     return F1_score
 
+
+
 def train(num_epochs):
+    
+    global train_loader
+    global train_size
     best_F1_test_score = 0.0
 
     for epoch in range(num_epochs):
@@ -193,7 +231,6 @@ def train(num_epochs):
         adjust_learning_rate(epoch)
 
         #Compute the average acc and loss over all training images
-        global train_size
         train_acc = train_acc / train_size
         train_loss = train_loss / train_size
 
@@ -214,33 +251,6 @@ def train(num_epochs):
 
 
 if __name__ == "__main__":
-    
-    #Check if gpu support is available
-    cuda_avail = torch.cuda.is_available()
-    
-    #Create model, optimizer and loss function
-    model = SimpleNet(num_classes=2)
-    
-    if cuda_avail:
-        print('Cuda is available.')
-        torch.cuda.init()
-        torch.cuda.set_device(GPU_ID)
-        print('Using GPU ' + str(GPU_ID))
-        torch.cuda.empty_cache()
-        model.cuda()
-    else:
-        print('Cuda is not available.')
-    
-    optimizer = Adam(model.parameters(), lr=0.001,weight_decay=0.0001)
-    loss_fn = nn.CrossEntropyLoss()
-    
-    batch_size = 32
-    
-    #load list of samplecards
-    samplecards = filehandling.pload(DATAPATH + '/mice_metadata/' + 'list_of_samplecards.pickledump')
-    
-    #load dataset
-    dataset = MetDataset(samplecards)
     
     #split dataset into train-set and test-set using k-fold cross-validation
     kfold = KFold(5, False, 1) # 5-fold, no prior shuffling, 1 as seed
