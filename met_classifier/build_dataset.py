@@ -8,8 +8,8 @@ import sys
 import numpy as np
 from torchvision.transforms import transforms
 
-CODEPATH = '/home/okugel/PMSD_code'
-DATAPATH = '/home/okugel/PMSD_data'
+CODEPATH = '/home/okugel/PMSD/PMSD_code'
+DATAPATH = '/home/okugel/PMSD/PMSD_data'
 
 
 # helper function to pad ID with zeros
@@ -46,6 +46,7 @@ class MetDataset(Dataset):
                 transforms.ToTensor(),
                 transforms.Normalize((0.5,), (0.5,))])
 
+            # data type of images?
             images[a]   = transformations(C00_image) # C00-x and C00-z
             images[a+2] = transformations(C01_image) # C01-x and C01-z
             images[a+4] = transformations(C02_image) # C02-x and C02-z

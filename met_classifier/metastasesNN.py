@@ -2,6 +2,8 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+from torch.utils.data import TensorDataset
+from torch.utils.data import Subset
 from torch.optim import Adam
 from build_dataset import MetDataset
 import numpy as np
@@ -9,8 +11,8 @@ from sklearn.model_selection import KFold
 
 GPU_ID = 7
 
-CODEPATH = '/home/okugel/PMSD_code'
-DATAPATH = '/home/okugel/PMSD_data'
+CODEPATH = '/home/okugel/PMSD/PMSD_code'
+DATAPATH = '/home/okugel/PMSD/PMSD_data'
 
 import sys
 sys.path.insert(0, CODEPATH + '/helperfunctions')
@@ -35,58 +37,62 @@ class Unit(nn.Module):
         return output
 
 class SimpleNet(nn.Module):
-    def __init__(self,num_classes=2):
+    def __init__(self,num_classes=1): # only 1 output class!
         super(SimpleNet,self).__init__()
 
-        #Create 14 layers of the unit with max pooling in between
         self.unit1 = Unit(in_channels=6,out_channels=32)
-        self.unit2 = Unit(in_channels=32, out_channels=32)
-        self.unit3 = Unit(in_channels=32, out_channels=32)
+        #self.unit2 = Unit(in_channels=32, out_channels=32)
+        #self.unit3 = Unit(in_channels=32, out_channels=32)
 
-        self.pool1 = nn.MaxPool2d(kernel_size=2)
+        self.pool1 = nn.MaxPool2d(kernel_size=2) # / 2
 
         self.unit4 = Unit(in_channels=32, out_channels=64)
-        self.unit5 = Unit(in_channels=64, out_channels=64)
-        self.unit6 = Unit(in_channels=64, out_channels=64)
-        self.unit7 = Unit(in_channels=64, out_channels=64)
+        #self.unit5 = Unit(in_channels=64, out_channels=64)
+        #self.unit6 = Unit(in_channels=64, out_channels=64)
+        #self.unit7 = Unit(in_channels=64, out_channels=64)
 
-        self.pool2 = nn.MaxPool2d(kernel_size=2)
+        self.pool2 = nn.MaxPool2d(kernel_size=2) # / 2
 
         self.unit8 = Unit(in_channels=64, out_channels=128)
-        self.unit9 = Unit(in_channels=128, out_channels=128)
-        self.unit10 = Unit(in_channels=128, out_channels=128)
-        self.unit11 = Unit(in_channels=128, out_channels=128)
+        #self.unit9 = Unit(in_channels=128, out_channels=128)
+        #self.unit10 = Unit(in_channels=128, out_channels=128)
+        #self.unit11 = Unit(in_channels=128, out_channels=128)
 
-        self.pool3 = nn.MaxPool2d(kernel_size=2)
+        self.pool3 = nn.MaxPool2d(kernel_size=3) # / 3
 
         self.unit12 = Unit(in_channels=128, out_channels=128)
-        self.unit13 = Unit(in_channels=128, out_channels=128)
-        self.unit14 = Unit(in_channels=128, out_channels=128)
+        #self.unit13 = Unit(in_channels=128, out_channels=128)
+        #self.unit14 = Unit(in_channels=128, out_channels=128)
 
-        self.avgpool = nn.AvgPool2d(kernel_size=4)
+        self.avgpool = nn.AvgPool2d(kernel_size=4) # / 4
+
+        # 50 / 2 / 2 / 3 / 4  ~~>  1
 
         #Add all the units into the Sequential layer in exact order
-        self.net = nn.Sequential(self.unit1, self.unit2, self.unit3, self.pool1, self.unit4, self.unit5, self.unit6
-                                 ,self.unit7, self.pool2, self.unit8, self.unit9, self.unit10, self.unit11, self.pool3,
-                                 self.unit12, self.unit13, self.unit14, self.avgpool)
+        self.net = nn.Sequential(self.unit1, self.pool1, self.unit4,
+                                 self.pool2, self.unit8, self.pool3,
+                                 self.unit12, self.avgpool)
 
         self.fc = nn.Linear(in_features=128,out_features=num_classes)
+
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, input):
         output = self.net(input)
         output = output.view(-1,128)
-        output = self.fc(output)
+        output = self.fc(output) # output is logits (any numeric range)
+        output = self.sigmoid(output) # output is probs (between 0 and 1)
         return output
 
 
 
 #####################################################################################################
-        
+
 #Check if gpu support is available
 cuda_avail = torch.cuda.is_available()
 
 #Create model, optimizer and loss function
-model = SimpleNet(num_classes=2)
+model = SimpleNet(num_classes=2) # num_classes should be 1 !!!
 
 if cuda_avail:
     print('Cuda is available.')
@@ -99,15 +105,13 @@ else:
     print('Cuda is not available.')
 
 optimizer = Adam(model.parameters(), lr=0.001,weight_decay=0.0001)
-loss_fn = nn.CrossEntropyLoss()
+
+weights = [2.0 , 0.5] # to counter class imbalance
+class_weights = torch.FloatTensor(weights).cuda()
+loss_fn = nn.CrossEntropyLoss(weight=class_weights) # weighted cross entropy loss
 
 batch_size = 32
-
-#load list of samplecards
-samplecards = filehandling.pload(DATAPATH + '/mice_metadata/' + 'list_of_samplecards.pickledump')
-
-#load dataset
-dataset = MetDataset(samplecards)
+print()
 
 #####################################################################################################
 
@@ -144,7 +148,7 @@ def save_models(epoch):
 
 def test():
     model.eval()
-    
+
     global test_loader
     global test_size
     number_of_Ts = 0 # trues
@@ -193,7 +197,7 @@ def test():
 
 
 def train(num_epochs):
-    
+
     global train_loader
     global train_size
     best_F1_test_score = 0.0
@@ -251,27 +255,31 @@ def train(num_epochs):
 
 
 if __name__ == "__main__":
-    
-    #split dataset into train-set and test-set using k-fold cross-validation
-    #kfold = KFold(5, True, 1) # 5-fold, prior shuffling, 1 as seed
-    #for train_set, test_set in kfold.split(dataset):
-        #print('train set: %s, test set: %s' % (train_set, test_set))
 
-    #old approach (without cross-validation)
-    for fold in range(5):
-        train_size = int(0.8 * len(dataset))
-        test_size = len(dataset) - train_size
-        train_set, test_set = torch.utils.data.random_split(dataset, [train_size, test_size])
+    #load list of samplecards
+    samplecards = filehandling.pload(DATAPATH + '/mice_metadata/' + 'list_of_samplecards.pickledump')
+    print('Size of complete dataset: ' + str(len(samplecards)))
+
+    # split dataset into train-set and test-set using k-fold cross-validation
+    kfold = KFold(5, True, 1) # 5-fold, prior shuffling, 1 as seed
+    fold_count = 1
+    for train_indices, test_indices in kfold.split(samplecards):
+        print('\n-------------------------- FOLD ' + str(fold_count) + ' --------------------------')
+        train_samplecards = [samplecards[i] for i in train_indices]
+        test_samplecards = [samplecards[i] for i in test_indices]
+        train_set = MetDataset(train_samplecards)
+        test_set = MetDataset(test_samplecards)
 
         train_size = len(train_set)
         test_size = len(test_set)
-        print('Size of train_set: ' + str(train_size))
-        print('Size of test_set: ' + str(test_size))
-        
+        print('Size of trainset: ' + str(train_size))
+        print('Size of testset: ' + str(test_size))
+
         #Create a loader for the training set
         train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True,  num_workers=4)
-        
+
         #Create a loader for the test set
         test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False,  num_workers=4)
-        
+
         train(10)
+        fold_count += 1
