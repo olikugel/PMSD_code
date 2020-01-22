@@ -52,11 +52,14 @@ class MetDataset(Dataset):
             images[a+4] = transformations(C02_image) # C02-x and C02-z
 
         label = samplecard['label']
+
         # label needs to be numeric
         if label == 'true positive':
             label = 1
+            label = torch.tensor(label, dtype=torch.float32)
         elif label == 'false positive':
             label = 0
+            label = torch.tensor(label, dtype=torch.float32)
 
         sample = (images, label)
         return sample

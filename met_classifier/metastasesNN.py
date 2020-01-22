@@ -20,11 +20,9 @@ import filehandling
 
 
 
-class Unit(nn.Module):
+class Conv_Unit(nn.Module):
     def __init__(self,in_channels,out_channels):
-        super(Unit,self).__init__()
-
-
+        super(Conv_Unit,self).__init__()
         self.conv = nn.Conv2d(in_channels=in_channels,kernel_size=3,out_channels=out_channels,stride=1,padding=1)
         self.bn = nn.BatchNorm2d(num_features=out_channels)
         self.relu = nn.ReLU()
@@ -33,66 +31,64 @@ class Unit(nn.Module):
         output = self.conv(input)
         output = self.bn(output)
         output = self.relu(output)
-
         return output
 
-class SimpleNet(nn.Module):
-    def __init__(self,num_classes=1): # only 1 output class!
-        super(SimpleNet,self).__init__()
 
-        self.unit1 = Unit(in_channels=6,out_channels=32)
-        #self.unit2 = Unit(in_channels=32, out_channels=32)
-        #self.unit3 = Unit(in_channels=32, out_channels=32)
+class NeuralNet(nn.Module):
+    def __init__(self,num_classes):
+        super(NeuralNet,self).__init__()
+
+        self.conv1 = Conv_Unit(in_channels=6,out_channels=32)
 
         self.pool1 = nn.MaxPool2d(kernel_size=2) # / 2
 
-        self.unit4 = Unit(in_channels=32, out_channels=64)
-        #self.unit5 = Unit(in_channels=64, out_channels=64)
-        #self.unit6 = Unit(in_channels=64, out_channels=64)
-        #self.unit7 = Unit(in_channels=64, out_channels=64)
+        self.conv2 = Conv_Unit(in_channels=32, out_channels=64)
 
         self.pool2 = nn.MaxPool2d(kernel_size=2) # / 2
 
-        self.unit8 = Unit(in_channels=64, out_channels=128)
-        #self.unit9 = Unit(in_channels=128, out_channels=128)
-        #self.unit10 = Unit(in_channels=128, out_channels=128)
-        #self.unit11 = Unit(in_channels=128, out_channels=128)
+        self.conv3 = Conv_Unit(in_channels=64, out_channels=128)
 
-        self.pool3 = nn.MaxPool2d(kernel_size=3) # / 3
+        self.pool3 = nn.MaxPool2d(kernel_size=2) # / 2
 
-        self.unit12 = Unit(in_channels=128, out_channels=128)
-        #self.unit13 = Unit(in_channels=128, out_channels=128)
-        #self.unit14 = Unit(in_channels=128, out_channels=128)
+        self.conv4 = Conv_Unit(in_channels=128, out_channels=128)
 
         self.avgpool = nn.AvgPool2d(kernel_size=4) # / 4
+        # self.pool4 = nn.MaxPool2d(kernel_size=2)
 
-        # 50 / 2 / 2 / 3 / 4  ~~>  1
+        self.convolutions = nn.Sequential(self.conv1, self.pool1, self.conv2,
+                                          self.pool2, self.conv3, self.pool3,
+                                          self.conv4, self.avgpool)
 
-        #Add all the units into the Sequential layer in exact order
-        self.net = nn.Sequential(self.unit1, self.pool1, self.unit4,
-                                 self.pool2, self.unit8, self.pool3,
-                                 self.unit12, self.avgpool)
-
-        self.fc = nn.Linear(in_features=128,out_features=num_classes)
+        self.fully_connected = nn.Linear(in_features=128,out_features=num_classes)
 
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, input):
-        output = self.net(input)
-        output = output.view(-1,128)
-        output = self.fc(output) # output is logits (any numeric range)
-        output = self.sigmoid(output) # output is probs (between 0 and 1)
-        return output
+        #print()
+        #print('Input shape: ', input.size())
 
+        convolution_output = self.convolutions(input)
+        #print('Shape after convolutions: ', convolution_output.size())
+
+        flattened_output = convolution_output.view(-1,128)
+        #print('Shape after flattening: ', flattened_output.size())
+
+        logits = self.fully_connected(flattened_output)
+        #print('Shape after fully-connected layer: ', logits.size())
+
+        probabilities = self.sigmoid(logits).squeeze()
+        #print('Shape after sigmoid: ', probabilities.size())
+
+        return probabilities
 
 
 #####################################################################################################
 
-#Check if gpu support is available
+# check if GPU support is available
 cuda_avail = torch.cuda.is_available()
 
-#Create model, optimizer and loss function
-model = SimpleNet(num_classes=2) # num_classes should be 1 !!!
+# create model by instantiating neural net
+MODEL = NeuralNet(num_classes=1)
 
 if cuda_avail:
     print('Cuda is available.')
@@ -100,15 +96,17 @@ if cuda_avail:
     torch.cuda.set_device(GPU_ID)
     print('Using GPU ' + str(GPU_ID))
     torch.cuda.empty_cache()
-    model.cuda()
+    MODEL.cuda()
 else:
     print('Cuda is not available.')
 
-optimizer = Adam(model.parameters(), lr=0.001,weight_decay=0.0001)
+optimizer = Adam(MODEL.parameters(), lr=0.001,weight_decay=0.0001)
 
-weights = [2.0 , 0.5] # to counter class imbalance
-class_weights = torch.FloatTensor(weights).cuda()
-loss_fn = nn.CrossEntropyLoss(weight=class_weights) # weighted cross entropy loss
+#weights = [?]  # to counter class imbalance
+#class_weights = torch.FloatTensor(weights).cuda()
+#loss_function = nn.BCELoss(weight=class_weights)
+
+loss_function = nn.BCELoss()
 
 batch_size = 32
 print()
@@ -142,12 +140,12 @@ def adjust_learning_rate(epoch):
 
 
 def save_models(epoch):
-    torch.save(model.state_dict(), "met_model_{}.model".format(epoch))
+    torch.save(MODEL.state_dict(), "met_model_{}.model".format(epoch))
     print("Checkpoint saved --> " + "met_model_{}".format(epoch))
 
 
 def test():
-    model.eval()
+    MODEL.eval()
 
     global test_loader
     global test_size
@@ -159,35 +157,45 @@ def test():
     number_of_FNs = 0 # false negatives
 
     for i, (images, labels) in enumerate(test_loader):
-
         if cuda_avail:
             device_name = 'cuda:' + str(GPU_ID)
             device = torch.device(device_name)
-            images = images.to(device)
-            labels = labels.to(device)
+            images = images.to(device) # CPU --> GPU
 
-        #Predict classes using images from the test set
-        outputs = model(images)
-        _,prediction = torch.max(outputs.data, 1)
-        number_of_Ts += (prediction == labels.data).sum().item()
-        number_of_Fs += (prediction != labels.data).sum().item()
-        number_of_TPs += np.sum(np.logical_and(prediction.cpu().numpy() == 1, labels.data.cpu().numpy() == 1))
-        number_of_FPs += np.sum(np.logical_and(prediction.cpu().numpy() == 1, labels.data.cpu().numpy() == 0))
-        number_of_TNs += np.sum(np.logical_and(prediction.cpu().numpy() == 0, labels.data.cpu().numpy() == 0))
-        number_of_FNs += np.sum(np.logical_and(prediction.cpu().numpy() == 0, labels.data.cpu().numpy() == 1))
+        # predict classes using images from the test set
+        predictions = MODEL(images)
 
-    test_acc = float(number_of_Ts) / test_size
+        # GPU --> CPU
+        predictions = predictions.data.cpu()
+
+        # prediction --> 0 or 1
+        threshold = 0.5
+        predictions[predictions >= threshold] = 1
+        predictions[predictions <  threshold] = 0
+
+        number_of_Ts += torch.sum(predictions == labels)
+        number_of_Fs += torch.sum(predictions != labels)
+
+        number_of_TPs += np.sum(np.logical_and(predictions.numpy() == 1, labels.numpy() == 1))
+        number_of_FPs += np.sum(np.logical_and(predictions.numpy() == 1, labels.numpy() == 0))
+        number_of_TNs += np.sum(np.logical_and(predictions.numpy() == 0, labels.numpy() == 0))
+        number_of_FNs += np.sum(np.logical_and(predictions.numpy() == 0, labels.numpy() == 1))
+
+    number_of_Ts = number_of_Ts.item()
+    number_of_Fs = number_of_Fs.item()
+
+    test_accuracy = number_of_Ts / test_size
     precision = number_of_TPs / (number_of_TPs + number_of_FPs)
     recall = number_of_TPs / (number_of_TPs + number_of_FNs)
     F1_score = 2 * (precision * recall) / (precision + recall)
 
-    print('Number of true predictions: ' + str(number_of_Ts))
-    print('Number of false predictions: ' + str(number_of_Fs))
+    print('Correctly classified: ' + str(number_of_Ts))
+    print('Incorrectly classified: ' + str(number_of_Fs))
     print('Number of TPs: ' + str(number_of_TPs))
     print('Number of FPs: ' + str(number_of_FPs))
     print('Number of TNs: ' + str(number_of_TNs))
     print('Number of FNs: ' + str(number_of_FNs))
-    print('Test Accuracy: ' + str(round(test_acc,3)))
+    print('Test Accuracy: ' + str(round(test_accuracy,3)))
     print('Precision: ' + str(round(precision,3)))
     print('Recall: ' + str(round(recall,3)))
     print('F1 score: ' + str(round(F1_score,3))) # optimise this one
@@ -203,46 +211,58 @@ def train(num_epochs):
     best_F1_test_score = 0.0
 
     for epoch in range(num_epochs):
-        model.train()
-        train_acc = 0.0
+        MODEL.train()
+        number_of_Ts = 0 # number of correct predictions
         train_loss = 0.0
         for i, (images, labels) in enumerate(train_loader):
-            #Move images and labels to gpu if available
             if cuda_avail:
                 device_name = 'cuda:' + str(GPU_ID)
                 device = torch.device(device_name)
-                images = images.to(device)
-                labels = labels.to(device)
+                images = images.to(device) # CPU --> GPU
+                labels = labels.to(device) # CPU --> GPU
 
             #Clear all accumulated gradients
             optimizer.zero_grad()
+
             #Predict classes using images from the test set
-            outputs = model(images)
-            #Compute the loss based on the predictions and actual labels
-            loss = loss_fn(outputs,labels)
+            predictions = MODEL(images)
+
+            #Compute the loss based on the predictions and actual labels (happens on GPU)
+            loss = loss_function(predictions,labels)
+
             #Backpropagate the loss
             loss.backward()
 
             #Adjust parameters according to the computed gradients
             optimizer.step()
 
-            train_loss += loss.cpu().data * images.size(0)
-            _, prediction = torch.max(outputs.data, 1)
-            train_acc += (prediction == labels.data).sum().item()
+            # GPU --> CPU
+            loss = loss.data.cpu()
+            predictions = predictions.data.cpu()
+            labels = labels.data.cpu()
+
+            train_loss += loss * images.size(0)
+
+            # prediction --> 0 or 1
+            threshold = 0.5
+            predictions[predictions >= threshold] = 1
+            predictions[predictions <  threshold] = 0
+
+            number_of_Ts += torch.sum(predictions == labels)
 
 
         #Call the learning rate adjustment function
         adjust_learning_rate(epoch)
 
         #Compute the average acc and loss over all training images
-        train_acc = train_acc / train_size
-        train_loss = train_loss / train_size
+        train_accuracy = number_of_Ts.item() / train_size
+        train_loss = train_loss.item() / train_size
 
         #Print the metrics
         print()
         print('##### Epoch ' + str(epoch) + ' #####')
-        print('Train Accuracy: ' + str(round(train_acc,3)))
-        print('Train Loss: ' + str(round(train_loss.item(),3)))
+        print('Train Accuracy: ' + str(round(train_accuracy,3)))
+        print('Train Loss: ' + str(round(train_loss,3)))
 
         #Evaluate on the test set
         F1_test_score = test()
@@ -281,5 +301,5 @@ if __name__ == "__main__":
         #Create a loader for the test set
         test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False,  num_workers=4)
 
-        train(10)
+        train(30)
         fold_count += 1
