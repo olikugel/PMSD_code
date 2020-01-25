@@ -12,7 +12,7 @@ import torch
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from build_dataset import MetDataset
-from metastasesNN import NeuralNet
+from train_neural_net import NeuralNet
 
 
 
@@ -68,7 +68,9 @@ def classify():
     print("Which model? Please provide just the ID")
     model_ID = input("--> ")
 
-    model_filename = 'met_model_' + model_ID + '.model'
+    model_filename = 'model_' + model_ID + '.model'
+    print()
+    print('Using ' + model_filename + ' for prediction')
 
     MODEL = NeuralNet(num_classes=1)
     MODEL.load_state_dict(torch.load('./' + model_filename))

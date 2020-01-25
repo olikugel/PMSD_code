@@ -151,9 +151,12 @@ def adjust_learning_rate(epoch):
 
 
 
-def save_models(epoch):
-    torch.save(MODEL.state_dict(), "met_model_{}.model".format(epoch))
-    print("Checkpoint saved --> " + "met_model_{}".format(epoch))
+def save_model(epoch, F1_score):
+    print('--> Saving model of epoch ' + str(epoch) + ' with an F1-score of ' + str(round(F1_score,3)))
+    model_filename = 'model_' + str(epoch) + '.model'
+    torch.save(MODEL.state_dict(), model_filename)
+    print('--> Checkpoint saved: ' + model_filename)
+
 
 
 def test():
@@ -285,7 +288,7 @@ def train(num_epochs):
 
         # save model if test acc is greater than our current best
         if F1_test_score > best_F1_test_score:
-            save_models(epoch)
+            save_model(epoch, F1_test_score)
             best_F1_test_score = F1_test_score
 
 
