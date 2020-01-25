@@ -82,6 +82,22 @@ class NeuralNet(nn.Module):
         return probabilities
 
 
+
+
+class WeightedBCELoss2d(torch.nn.Module):
+    def __init__(self):
+        super(WeightedBCELoss2d, self).__init__()
+
+    def forward(self, probs, targets, classweights):
+        probs_flat = probs.view(-1)
+        targets_flat = targets.view(-1)
+        loss = classweights[0] * (targets_flat * torch.log(probs_flat + 0.0001)) +  classweights[1] * ((1 - targets_flat) * torch.log(1 - probs_flat + 0.0001))
+        return torch.neg(loss.sum())
+
+
+
+
+
 #####################################################################################################
 
 # check if GPU support is available
@@ -102,11 +118,7 @@ else:
 
 optimizer = Adam(MODEL.parameters(), lr=0.001,weight_decay=0.0001)
 
-#weights = [?]  # to counter class imbalance
-#class_weights = torch.FloatTensor(weights).cuda()
-#loss_function = nn.BCELoss(weight=class_weights)
-
-loss_function = nn.BCELoss()
+loss_function = WeightedBCELoss2d()
 
 batch_size = 32
 print()
@@ -221,19 +233,24 @@ def train(num_epochs):
                 images = images.to(device) # CPU --> GPU
                 labels = labels.to(device) # CPU --> GPU
 
-            #Clear all accumulated gradients
+            # clear all accumulated gradients
             optimizer.zero_grad()
 
-            #Predict classes using images from the test set
+            # predict classes (predictions consist of probabilities)
             predictions = MODEL(images)
 
-            #Compute the loss based on the predictions and actual labels (happens on GPU)
-            loss = loss_function(predictions,labels)
+            # define weights to counter class imbalance
+            class1_weight = 0.5 # weight for TP-samples
+            class0_weight = 2.0 # weight for FP-samples
+            class_weights = [class1_weight, class0_weight]
 
-            #Backpropagate the loss
+            # compute the loss based on the predictions and actual labels (happens on GPU)
+            loss = loss_function(predictions, labels, class_weights)
+
+            # backpropagate the loss
             loss.backward()
 
-            #Adjust parameters according to the computed gradients
+            # adjust parameters according to the computed gradients
             optimizer.step()
 
             # GPU --> CPU
@@ -251,23 +268,22 @@ def train(num_epochs):
             number_of_Ts += torch.sum(predictions == labels)
 
 
-        #Call the learning rate adjustment function
         adjust_learning_rate(epoch)
 
-        #Compute the average acc and loss over all training images
+        # compute the average acc and loss over all training images
         train_accuracy = number_of_Ts.item() / train_size
         train_loss = train_loss.item() / train_size
 
-        #Print the metrics
+        # print metrics
         print()
         print('##### Epoch ' + str(epoch) + ' #####')
         print('Train Accuracy: ' + str(round(train_accuracy,3)))
         print('Train Loss: ' + str(round(train_loss,3)))
 
-        #Evaluate on the test set
+        # evaluate on the test set
         F1_test_score = test()
 
-        # Save the model if the test acc is greater than our current best
+        # save model if test acc is greater than our current best
         if F1_test_score > best_F1_test_score:
             save_models(epoch)
             best_F1_test_score = F1_test_score
