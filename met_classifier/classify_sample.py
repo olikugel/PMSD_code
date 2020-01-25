@@ -84,25 +84,33 @@ def classify():
         sys.exit()
 
     prediction = MODEL(images)
+    prediction = prediction.item()
+    prediction = round(prediction,3)
+    print('Prediction: ' + str(prediction))
+    print()
 
     if prediction >= 0.5:
         classification = 1 # classified as metastasis
+        certainty = prediction
     else:
         classification = 0 # classified as not-a-mestastasis
+        certainty = 1 - prediction
 
-    return classification
+    certainty = round((certainty * 100),3)
+
+    return classification, certainty
 
 
 
 
 
-classification = classify()
+classification, certainty = classify()
 
 print('Classification:', classification)
 
 if classification == 1:
    print('Predicted label: true positive')
-   print('This sample was classified as a real metastasis.')
+   print("With a certainty of " + str(certainty) + "%, this sample was classified as 'real metastasis'.")
 else: # classification == 0
    print('Predicted label: false positive')
-   print('This sample was classified as not a real metastasis.')
+   print("With a certainty of " + str(certainty) + "%, this sample was classified as 'not a real metastasis'.")
