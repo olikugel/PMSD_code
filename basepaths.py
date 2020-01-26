@@ -18,9 +18,12 @@ def get_basepaths():
     if machine_ID == '83011c94751c4629a5d4c426051b3041':   # running on translatum machine
         CODEPATH = '/home/olikugel/PMSD/PMSD_code'
         DATAPATH = '/home/olikugel/PMSD/PMSD_data'  
-    elif machine_ID == '14bef0a2877e464f877ca6ab665b81e8': # running on remote server
+    elif machine_ID == '14bef0a2877e464f877ca6ab665b81e8': # running on grosshadern server
         CODEPATH = '/home/oschoppe/Documents/OKugel/PMSD_code'
         DATAPATH = '/home/oschoppe/Documents/OKugel/PMSD_data'  
+    elif machine_ID == '56020464b34fe9b42c94fa485a828ed1': # running on facebook server
+        CODEPATH = '/home/okugel/PMSD/PMSD_code'
+        DATAPATH = '/home/okugel/PMSD/PMSD_data'
     elif machine_ID == '3e372380154944dc87b8154c932a2624': # running on OlisLaptop
         CODEPATH = '/home/olikugel/Coding/PMSD/PMSD_code'
         DATAPATH = '/home/olikugel/Coding/PMSD/PMSD_data'  
