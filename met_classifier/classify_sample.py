@@ -74,7 +74,12 @@ def classify():
     print('Using ' + model_filename + ' for prediction')
 
     MODEL = NeuralNet(num_classes=1)
-    MODEL.load_state_dict(torch.load('./' + model_filename))
+    
+    if torch.cuda.is_available():
+        MODEL.load_state_dict(torch.load('./' + model_filename))
+    else:
+        MODEL.load_state_dict(torch.load('./' + model_filename, map_location=torch.device('cpu')))
+
     MODEL.eval()
 
     images = pick_sample()
