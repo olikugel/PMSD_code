@@ -8,10 +8,11 @@ CODEPATH, DATAPATH = basepaths.get_basepaths()
 sys.path.insert(0, CODEPATH + '/helperfunctions')
 import filehandling
 
+# -----------------------------------------------------------------------------------
+
 
 
 samplecards = filehandling.pload(DATAPATH + '/mice_metadata/' + 'list_of_samplecards.pickledump')
-
 
 TP_count = 0
 FP_count = 0
