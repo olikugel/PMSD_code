@@ -6,7 +6,6 @@ import basepaths
 CODEPATH, DATAPATH = basepaths.get_basepaths()
 
 sys.path.insert(0, CODEPATH + '/helperfunctions')
-
 import filehandling
 import dataconversions
 

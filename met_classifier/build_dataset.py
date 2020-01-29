@@ -5,6 +5,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import basepaths
 CODEPATH, DATAPATH = basepaths.get_basepaths()
 
+sys.path.insert(0, CODEPATH + '/helperfunctions')
+import filehandling
+from filehandling import pad_ID
+
 import torch
 from torch.utils.data import Dataset
 import imageio
@@ -13,21 +17,6 @@ import numpy as np
 from torchvision.transforms import transforms
 
 
-
-# helper function to pad ID with zeros
-def pad_ID(ID):
-    if ID >= 0 and ID < 10:
-        ID_padded = '000' + str(ID)
-    elif ID >= 10 and ID < 100:
-        ID_padded = '00' + str(ID)
-    elif ID >= 100 and ID < 1000:
-        ID_padded = '0' + str(ID)
-    elif ID >= 1000 and ID < 10000:
-        ID_padded = str(ID)
-    else:
-        print('pad_ID helperfunction is not implemented for IDs >= 10000 or < 0')
-        return None
-    return ID_padded
 
 
 
