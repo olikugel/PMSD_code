@@ -1,4 +1,13 @@
-#Import needed packages
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "..")) 
+import basepaths
+CODEPATH, DATAPATH = basepaths.get_basepaths()
+
+sys.path.insert(0, CODEPATH + '/helperfunctions')
+import filehandling
+
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -9,14 +18,9 @@ from build_dataset import MetDataset
 import numpy as np
 from sklearn.model_selection import KFold
 
+
 GPU_ID = 7
 
-CODEPATH = '/home/okugel/PMSD/PMSD_code'
-DATAPATH = '/home/okugel/PMSD/PMSD_data'
-
-import sys
-sys.path.insert(0, CODEPATH + '/helperfunctions')
-import filehandling
 
 
 

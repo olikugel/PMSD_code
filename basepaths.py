@@ -13,7 +13,7 @@ def get_basepaths():
     for line in lines:
         if "Machine ID" in line:
             machine_ID = line.strip().replace("Machine ID: ", "")
-            print("\nMachine:\t", machine_ID)
+            #print("\nMachine:\t", machine_ID)
     
     if machine_ID == '83011c94751c4629a5d4c426051b3041':   # running on translatum machine
         CODEPATH = '/home/olikugel/PMSD/PMSD_code'

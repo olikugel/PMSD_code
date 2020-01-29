@@ -1,7 +1,9 @@
 import sys
+import os
 
-CODEPATH = '/home/okugel/PMSD/PMSD_code'
-DATAPATH = '/home/okugel/PMSD/PMSD_data'
+sys.path.append(os.path.join(os.path.dirname(__file__), "..")) 
+import basepaths
+CODEPATH, DATAPATH = basepaths.get_basepaths()
 
 sys.path.insert(0, CODEPATH + '/helperfunctions')
 

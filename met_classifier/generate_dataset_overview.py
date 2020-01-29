@@ -1,8 +1,13 @@
-CODEPATH = '/home/okugel/PMSD/PMSD_code'
-DATAPATH = '/home/okugel/PMSD/PMSD_data'
 import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "..")) 
+import basepaths
+CODEPATH, DATAPATH = basepaths.get_basepaths()
+
 sys.path.insert(0, CODEPATH + '/helperfunctions')
 import filehandling
+
 
 
 samplecards = filehandling.pload(DATAPATH + '/mice_metadata/' + 'list_of_samplecards.pickledump')

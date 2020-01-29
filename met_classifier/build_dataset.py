@@ -1,15 +1,17 @@
-"""
-Building own dataset
-"""
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "..")) 
+import basepaths
+CODEPATH, DATAPATH = basepaths.get_basepaths()
+
 import torch
 from torch.utils.data import Dataset
 import imageio
-import sys
+
 import numpy as np
 from torchvision.transforms import transforms
 
-CODEPATH = '/home/okugel/PMSD/PMSD_code'
-DATAPATH = '/home/okugel/PMSD/PMSD_data'
 
 
 # helper function to pad ID with zeros
