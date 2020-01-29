@@ -58,21 +58,21 @@ def pick_sample():
 
         for i, (images, label) in enumerate(sample_loader):
             return images
-
     else:
         return None
 
 
 
-def classify():
 
-    print()
+def pick_model():
+    
     print("Which model? Please provide just the ID")
     model_ID = input("--> ")
 
     model_filename = 'model_' + model_ID + '.model'
     print()
     print('Using ' + model_filename + ' for prediction')
+    print()
 
     MODEL = NeuralNet(num_classes=1)
     
@@ -81,9 +81,14 @@ def classify():
     else:
         MODEL.load_state_dict(torch.load('./' + model_filename, map_location=torch.device('cpu')))
 
-    MODEL.eval()
+    return MODEL
 
-    images = pick_sample()
+
+
+
+def classify(images, MODEL):
+
+    MODEL.eval()
 
     if images is None:
         print()
@@ -93,8 +98,8 @@ def classify():
     prediction = MODEL(images)
     prediction = prediction.item()
     prediction = round(prediction,3)
-    print('Prediction: ' + str(prediction))
-    print()
+    #print('Prediction: ' + str(prediction))
+    #print()
 
     if prediction >= 0.5:
         classification = 1 # classified as metastasis
@@ -110,14 +115,19 @@ def classify():
 
 
 
+if __name__ == "__main__":
 
-classification, certainty = classify()
+    images = pick_sample()
 
-print('Classification:', classification)
+    MODEL = pick_model()
 
-if classification == 1:
-   print('Predicted label: true positive')
-   print("With a certainty of " + str(certainty) + "%, this sample was classified as 'real metastasis'.")
-else: # classification == 0
-   print('Predicted label: false positive')
-   print("With a certainty of " + str(certainty) + "%, this sample was classified as 'not a real metastasis'.")
+    classification, certainty = classify(images, MODEL)
+
+    print('Classification:', classification)
+
+    if classification == 1:
+        print('Predicted label: true positive')
+        print("With a certainty of " + str(certainty) + "%, this sample was classified as 'real metastasis'.")
+    else: # classification == 0
+        print('Predicted label: false positive')
+        print("With a certainty of " + str(certainty) + "%, this sample was classified as 'not a real metastasis'.")
